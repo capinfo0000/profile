@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>作品 / ポートフォリオ</title>
+<meta name="description" content="つくったサービスとWeb制作の一覧。">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
+  <symbol id="iGear" viewBox="0 0 24 24"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm9.4 4a7.5 7.5 0 01-.1 1.2l2 1.6-2 3.4-2.4-1a7.6 7.6 0 01-2 1.2l-.4 2.6h-4l-.4-2.6a7.6 7.6 0 01-2-1.2l-2.4 1-2-3.4 2-1.6A7.5 7.5 0 012.6 12c0-.4 0-.8.1-1.2l-2-1.6 2-3.4 2.4 1a7.6 7.6 0 012-1.2l.4-2.6h4l.4 2.6c.7.3 1.4.7 2 1.2l2.4-1 2 3.4-2 1.6c.1.4.1.8.1 1.2z"/></symbol>
+  <symbol id="iArrow" viewBox="0 0 100 100"><path d="M18 50h58"/><path d="M56 30l20 20-20 20"/></symbol>
+  <symbol id="iKeys" viewBox="0 0 100 100"><rect x="36" y="6" width="28" height="28" rx="3"/><rect x="6" y="40" width="28" height="28" rx="3"/><rect x="36" y="40" width="28" height="28" rx="3"/><rect x="66" y="40" width="28" height="28" rx="3"/></symbol>
+  <symbol id="iScroll" viewBox="0 0 100 100"><rect x="28" y="8" width="44" height="84" rx="22"/><path d="M50 26v14"/></symbol>
+  <symbol id="iSwipe" viewBox="0 0 100 100"><path d="M50 22v46"/><path d="M34 38 50 22l16 16"/><path d="M18 78h64"/></symbol>
+</defs></svg>
+
+<div class="stage">
+  <canvas id="patternCanvas"></canvas>
+  <canvas id="viewerCanvas"></canvas>
+
+  <div class="chrome">
+    <a class="logo" href="index.html"><span class="logo__mark"></span><span id="logoTxt">works</span></a>
+
+    <nav class="nav">
+      <a class="nav__link" href="index.html">トップ</a>
+      <a class="nav__link is-current" href="works.html">作品</a>
+      <a class="nav__link" href="about.html">について</a>
+      <button class="btnSquare" type="button" id="openSettings" aria-label="設定">
+        <svg aria-hidden="true"><use href="#iGear"/></svg><span>設定</span>
+      </button>
+    </nav>
+
+    <div class="workLabel" id="workLabel">
+      <span class="workLabel__row">
+        <span class="workLabel__ghost" id="labelGhost"></span>
+        <span class="workLabel__main" id="labelMain"></span>
+      </span>
+      <span class="workLabel__row"><span class="workLabel__sub" id="labelSub"></span></span>
+    </div>
+
+    <div class="hints">
+      <div class="hint hint--key"><svg aria-hidden="true"><use href="#iKeys"/></svg><span>PRESS ARROW KEY</span></div>
+      <div class="hint hint--scroll"><svg aria-hidden="true"><use href="#iScroll"/></svg><span>MOUSE SCROLL</span></div>
+      <div class="hint hint--swipe"><svg aria-hidden="true"><use href="#iSwipe"/></svg><span>SWIPE<small>タップで詳細</small></span></div>
+    </div>
+
+    <div class="pager">
+      <button class="pager__btn pager__btn--prev" type="button" id="prev" aria-label="前の作品"><svg aria-hidden="true"><use href="#iArrow"/></svg></button>
+      <p class="pager__num" id="pagerNum"></p>
+      <span class="pager__sep">/</span>
+      <p class="pager__total" id="pagerTotal"></p>
+      <button class="pager__btn pager__btn--next" type="button" id="next" aria-label="次の作品"><svg aria-hidden="true"><use href="#iArrow"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<div class="cursor" id="cursor">
+  <span class="cursor__mark"></span>
+  <span class="cursor__label">詳細はこちら</span>
+</div>
+
+<!-- 作品詳細 -->
+<div class="detail" id="detail">
+  <div class="detail__veil" data-close-detail></div>
+  <div class="detail__box">
+    <div class="detail__inner" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+      <button class="detail__back" type="button" data-close-detail>← 一覧に戻る</button>
+      <p><span class="detail__title" id="dTitle"></span></p>
+      <p class="detail__sub" id="dSub"></p>
+      <div class="detail__rows">
+        <div class="detail__row"><span class="detail__rowKey">区分</span><span id="dCategory"></span></div>
+        <div class="detail__row"><span class="detail__rowKey">役割</span><span id="dRole"></span></div>
+        <div class="detail__row"><span class="detail__rowKey">使用技術</span><span class="detail__tags" id="dTech"></span></div>
+      </div>
+      <p class="detail__notice" id="dNotice"></p>
+      <a class="detail__link" id="dLink" href="#" target="_blank" rel="noopener noreferrer">サイトにアクセス ⧉</a>
+    </div>
+  </div>
+</div>
+
+<!-- 設定 -->
+<div class="settings" id="settings">
+  <div class="settings__veil" data-close-settings></div>
+  <div class="settings__box" role="dialog" aria-modal="true" aria-label="設定">
+    <div class="settings__head">
+      <h2 class="settings__title">Settings</h2>
+      <button class="settings__close" type="button" data-close-settings aria-label="閉じる"></button>
+    </div>
+    <div class="settings__body">
+      <div class="field">
+        <p class="field__name">Color scheme</p>
+        <div class="seg" data-key="theme">
+          <span class="seg__mark"></span>
+          <button class="seg__item" type="button" data-value="auto"><span class="seg__label">Auto</span></button>
+          <button class="seg__item" type="button" data-value="light"><span class="seg__label">Light</span></button>
+          <button class="seg__item" type="button" data-value="dark"><span class="seg__label">Dark</span></button>
+        </div>
+        <p class="field__note">Auto はOSの設定に合わせます。</p>
+      </div>
+      <div class="field">
+        <p class="field__name">Motion</p>
+        <div class="seg" data-key="motion">
+          <span class="seg__mark"></span>
+          <button class="seg__item" type="button" data-value="on"><span class="seg__label">On</span></button>
+          <button class="seg__item" type="button" data-value="off"><span class="seg__label">Off</span></button>
+        </div>
+        <p class="field__note">背景と切り替えの動きを止めます。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="data/works.js"></script>
+<script src="assets/js/pattern.js"></script>
+<script src="assets/js/artwork.js"></script>
+<script src="assets/js/viewer.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
