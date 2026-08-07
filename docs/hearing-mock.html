@@ -1,0 +1,530 @@
+<title>HP要件ヒアリング用 仮モック</title>
+<style>
+  :root{
+    --ground:#FAFAF8; --surface:#FFFFFF; --surface-2:#F2F1EC; --sunken:#EDEBE4;
+    --line:#DEDCD4; --line-2:#C8C5BA;
+    --ink:#1F1E1B; --ink-2:#56544C; --ink-3:#8A877D;
+    --accent:#7A5C2E;
+    --flag:#A0520A; --flag-bg:#FBF0E0; --flag-line:#E3C89C;
+    --ok:#2F6B4F; --ok-bg:#EAF2ED; --ok-line:#BCD6C7;
+    --no:#8A3A3A; --no-bg:#F5EBEB;
+    --serif:"Hiragino Mincho ProN","Yu Mincho",YuMincho,"Noto Serif JP",Georgia,serif;
+    --sans:"Hiragino Sans","Noto Sans JP","Yu Gothic UI",Meiryo,system-ui,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --ground:#151614; --surface:#1D1E1B; --surface-2:#25261F; --sunken:#212219;
+      --line:#34352D; --line-2:#464740;
+      --ink:#EDEBE3; --ink-2:#AFACA2; --ink-3:#7E7B72;
+      --accent:#C9A46A;
+      --flag:#E0A458; --flag-bg:#31271A; --flag-line:#5C4726;
+      --ok:#77BC98; --ok-bg:#1C2A22; --ok-line:#2F4A3B;
+      --no:#D48D8D; --no-bg:#2C1E1E;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#151614; --surface:#1D1E1B; --surface-2:#25261F; --sunken:#212219;
+    --line:#34352D; --line-2:#464740;
+    --ink:#EDEBE3; --ink-2:#AFACA2; --ink-3:#7E7B72;
+    --accent:#C9A46A;
+    --flag:#E0A458; --flag-bg:#31271A; --flag-line:#5C4726;
+    --ok:#77BC98; --ok-bg:#1C2A22; --ok-line:#2F4A3B;
+    --no:#D48D8D; --no-bg:#2C1E1E;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--ground); color:var(--ink);
+    font-family:var(--sans); font-size:16px; line-height:1.8;
+    -webkit-font-smoothing:antialiased;
+    padding:0 20px 96px;
+  }
+  .wrap{max-width:860px; margin:0 auto;}
+  h1,h2,h3{font-family:var(--serif); font-weight:600; text-wrap:balance; line-height:1.4;}
+
+  .notice{
+    margin:40px 0 0; padding:20px 22px;
+    background:var(--flag-bg); border:1px solid var(--flag-line); border-radius:3px;
+  }
+  .notice p{margin:0; color:var(--ink-2); font-size:14.5px;}
+  .notice strong{display:block; color:var(--flag); font-size:15px; margin-bottom:4px; letter-spacing:.02em;}
+
+  .masthead{padding:44px 0 8px; border-bottom:1px solid var(--line); margin-bottom:44px;}
+  .eyebrow{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-3); margin:0 0 14px;
+  }
+  .masthead h1{font-size:34px; margin:0 0 10px;}
+  .masthead .sub{margin:0 0 28px; color:var(--ink-2); font-size:15px;}
+
+  section{margin:0 0 56px;}
+  .sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:6px;}
+  .sec-num{font-family:var(--mono); font-size:12px; color:var(--accent); letter-spacing:.1em;}
+  h2{font-size:23px; margin:0;}
+  .lede{color:var(--ink-2); font-size:14.5px; margin:6px 0 24px;}
+
+  .tbl-scroll{overflow-x:auto; border:1px solid var(--line); border-radius:3px; background:var(--surface);}
+  table{border-collapse:collapse; width:100%; font-size:14.5px; min-width:520px;}
+  th,td{text-align:left; padding:11px 16px; border-bottom:1px solid var(--line); vertical-align:top;}
+  tr:last-child td{border-bottom:0;}
+  th{
+    font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink-3); font-weight:400; background:var(--surface-2); white-space:nowrap;
+  }
+  td.k{color:var(--ink); white-space:nowrap;}
+  td.v{color:var(--ink-2);}
+
+  .q{color:var(--flag); font-weight:600;}
+  .pill{
+    display:inline-block; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em;
+    padding:2px 8px; border-radius:2px; border:1px solid currentColor; white-space:nowrap;
+  }
+  .pill.ask{color:var(--flag); background:var(--flag-bg);}
+  .pill.fix{color:var(--ok); background:var(--ok-bg);}
+
+  /* decided summary */
+  .decided{
+    background:var(--ok-bg); border:1px solid var(--ok-line); border-radius:3px;
+    padding:18px 22px; margin-bottom:24px;
+  }
+  .decided p{margin:0 0 10px; font-family:var(--mono); font-size:11px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--ok);}
+  .decided ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:7px;}
+  .decided li{font-size:14.5px; color:var(--ink-2); display:flex; gap:10px;}
+  .decided li b{color:var(--ink); font-weight:600; min-width:8.5em; display:inline-block;}
+
+  /* browser frame */
+  .frame{border:1px solid var(--line-2); border-radius:5px; overflow:hidden; background:var(--surface); margin-bottom:14px;}
+  .chrome{
+    display:flex; align-items:center; gap:8px; padding:9px 12px;
+    background:var(--surface-2); border-bottom:1px solid var(--line);
+  }
+  .dot{width:9px; height:9px; border-radius:50%; background:var(--line-2); flex:none;}
+  .url{
+    flex:1; margin-left:6px; font-family:var(--mono); font-size:11.5px; color:var(--ink-3);
+    background:var(--ground); border:1px solid var(--line); border-radius:3px; padding:3px 10px;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .frame-cap{font-size:12.5px; color:var(--ink-3); margin:0 0 28px; font-family:var(--mono);}
+
+  .wf{font-size:14px; line-height:1.7;}
+  .wf-nav{
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    padding:14px 22px; border-bottom:1px solid var(--line);
+  }
+  .wf-logo{font-family:var(--mono); font-size:13px; letter-spacing:.06em; color:var(--ink);}
+  .wf-links{display:flex; gap:18px; flex-wrap:wrap; font-size:12.5px; color:var(--ink-2);}
+  .wf-hero{padding:44px 22px 40px; border-bottom:1px solid var(--line);}
+  .wf-hero h3{font-size:24px; margin:0 0 10px; color:var(--ink);}
+  .wf-hero p{margin:0 0 18px; color:var(--ink-2); font-size:13.5px; max-width:52ch;}
+  .btn{
+    display:inline-block; font-size:12.5px; padding:7px 18px; border-radius:3px;
+    border:1px solid var(--line-2); color:var(--ink-2); background:var(--surface-2);
+  }
+  .wf-block{padding:32px 22px; border-bottom:1px solid var(--line);}
+  .wf-block:last-child{border-bottom:0;}
+  .wf-label{
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink-3); margin:0 0 14px;
+  }
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px;}
+  .card{border:1px solid var(--line); border-radius:3px; padding:14px; background:var(--sunken);}
+  .thumb{
+    height:92px; margin:-2px -2px 12px; border:1px dashed var(--line-2); border-radius:2px;
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    font-family:var(--mono); font-size:10.5px; color:var(--ink-3); padding:6px;
+  }
+  .card h4{margin:0 0 5px; font-size:13.5px; font-family:var(--sans); font-weight:600; color:var(--ink);}
+  .card p{margin:0; font-size:12px; color:var(--ink-3); line-height:1.65;}
+  .lock{
+    display:inline-block; font-family:var(--mono); font-size:10px; letter-spacing:.06em;
+    border:1px solid var(--line-2); border-radius:2px; padding:1px 7px; margin-bottom:7px;
+    color:var(--ink-2); background:var(--surface-2);
+  }
+  .rows{display:flex; flex-direction:column; gap:9px;}
+  .row{display:flex; gap:12px; font-size:12.5px; color:var(--ink-2); padding-bottom:9px; border-bottom:1px dotted var(--line-2);}
+  .row:last-child{border-bottom:0; padding-bottom:0;}
+  .row time{font-family:var(--mono); font-size:11.5px; color:var(--ink-3); white-space:nowrap; min-width:4.5em;}
+  .wf-foot{padding:18px 22px; font-size:11.5px; color:var(--ink-3); text-align:center; background:var(--surface-2);}
+  .ann{
+    display:inline-block; margin-top:9px; font-size:11.5px; color:var(--flag);
+    background:var(--flag-bg); border:1px solid var(--flag-line); border-radius:2px; padding:2px 9px;
+  }
+
+  /* 取説ページ用 */
+  .shot-big{
+    height:190px; border:1px dashed var(--line-2); border-radius:3px; background:var(--sunken);
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    font-family:var(--mono); font-size:11px; color:var(--ink-3); margin-bottom:10px; padding:10px;
+  }
+  .steps{display:flex; flex-direction:column; gap:18px; counter-reset:step;}
+  .step{display:grid; grid-template-columns:150px 1fr; gap:16px; align-items:start;}
+  .step .shot{
+    height:88px; border:1px dashed var(--line-2); border-radius:2px; background:var(--sunken);
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    font-family:var(--mono); font-size:10px; color:var(--ink-3); padding:6px;
+  }
+  .step h5{
+    margin:0 0 4px; font-size:13px; font-family:var(--sans); font-weight:600; color:var(--ink);
+  }
+  .step h5::before{
+    counter-increment:step; content:"STEP " counter(step) " ";
+    font-family:var(--mono); font-size:10px; color:var(--accent); letter-spacing:.1em; margin-right:6px;
+  }
+  .step p{margin:0; font-size:12.5px; color:var(--ink-2); line-height:1.7;}
+  @media (max-width:520px){ .step{grid-template-columns:1fr;} }
+
+  .ask-list{list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:14px;}
+  .ask-list li{
+    background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent);
+    border-radius:3px; padding:15px 18px;
+  }
+  .ask-list h4{margin:0 0 5px; font-size:15px; font-family:var(--sans); font-weight:600;}
+  .ask-list p{margin:0 0 10px; font-size:13.5px; color:var(--ink-2);}
+  .choices{display:flex; gap:10px; flex-wrap:wrap; font-family:var(--mono); font-size:11.5px;}
+  .choices span{border:1px solid var(--line-2); border-radius:2px; padding:3px 11px; color:var(--ink-2);}
+
+  .warn{
+    border-left:3px solid var(--no); background:var(--no-bg); border-radius:3px;
+    padding:15px 18px; font-size:14px; color:var(--ink-2);
+  }
+  .warn b{color:var(--no); display:block; margin-bottom:4px; font-size:14.5px;}
+
+  ul.plain{padding-left:1.15em; color:var(--ink-2); font-size:14.5px; margin:0;}
+  ul.plain li{margin-bottom:5px;}
+  footer{border-top:1px solid var(--line); padding-top:20px; color:var(--ink-3); font-size:12.5px;}
+  @media (max-width:560px){
+    .masthead h1{font-size:27px;}
+    th,td{padding:10px 12px;}
+    .decided li{flex-direction:column; gap:0;}
+  }
+</style>
+
+<div class="wrap">
+
+  <div class="notice">
+    <strong>📋 これはヒアリング途中の仮モックです（第2版）</strong>
+    <p>決定事項ではありません。ご回答をもとに更新しています。<span class="q">❓</span> が付いている箇所が、これから決める部分です。</p>
+  </div>
+
+  <header class="masthead">
+    <p class="eyebrow">仮モック / 第2版</p>
+    <h1>ポートフォリオサイト（取扱説明つき）</h1>
+    <p class="sub">engineer.v2008.coreserver.jp / 静的HTML — 要件ヒアリング用たたき台</p>
+  </header>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>ここまでで確定したこと</h2></div>
+    <div class="decided">
+      <p>✅ 確認済み</p>
+      <ul>
+        <li><b>公開URL</b><span>engineer.v2008.coreserver.jp のまま（独自ドメインは取得しない）</span></li>
+        <li><b>実装方式</b><span>静的HTML／CSS（WordPressは使わない）</span></li>
+        <li><b>サイトの主役</b><span>ポートフォリオ。作ったものを見せることが目的</span></li>
+        <li><b>各サービス</b><span>ログインが必要なため、来訪者は実物を操作できない</span></li>
+        <li><b>見せ方</b><span>スクリーンショット＋説明文で「取扱説明」として見せる</span></li>
+        <li><b>リンク</b><span>各サブドメインへのリンクは出す（ただしID・パスワードは掲載しない）</span></li>
+        <li><b>自己紹介</b><span>載せる（Aboutあり）。ただし主役はあくまで作ったもの</span></li>
+        <li><b>画面写真</b><span>ダミーデータを入れた状態で撮り直す（実データは使わない）</span></li>
+        <li><b>お試しID</b><span>用意しない。来訪者はサービスを操作できない前提で作る</span></li>
+        <li><b>問い合わせ</b><span>入力フォームを設置する</span></li>
+        <li><b>スマホ対応</b><span>する</span></li>
+        <li><b>アクセス解析</b><span>入れる（Googleアナリティクス）</span></li>
+        <li><b>画像拡大</b><span>クリックで大きく表示できるようにする</span></li>
+      </ul>
+    </div>
+    <p class="lede" style="margin:0;">
+      この前提だと、サイトの中心は「一覧」ではなく <strong>1プロダクトごとの取説ページ</strong> になります。
+      来訪者は触れないので、<strong>画面写真の質と説明文の分かりやすさが、そのままサイトの品質</strong>です。
+    </p>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>ページ構成（案）</h2></div>
+    <p class="lede">トップ1枚では足りなくなったので、プロダクトごとの詳細ページを正式に立てます。</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>ページ</th><th>載せる内容</th><th>判断</th></tr></thead>
+        <tbody>
+          <tr><td class="k">トップ</td><td class="v">一言紹介／作ったもの一覧（写真つきカード）／連絡先への導線</td><td><span class="pill fix">必須</span></td></tr>
+          <tr><td class="k">プロダクト詳細</td><td class="v"><strong>1プロダクトにつき1ページ。</strong>何ができるものか／画面写真での操作説明／使用技術／サービスへのリンク</td><td><span class="pill fix">必須</span></td></tr>
+          <tr><td class="k">About</td><td class="v">プロフィール、経歴、使える技術、資格</td><td><span class="pill fix">必須</span></td></tr>
+          <tr><td class="k">Contact</td><td class="v">入力フォーム（名前・メール・本文）＋送信完了表示</td><td><span class="pill fix">必須</span></td></tr>
+          <tr><td class="k">プライバシーポリシー</td><td class="v">受け取った個人情報の扱い、アクセス解析でのクッキー利用の告知</td><td><span class="pill fix">必須</span></td></tr>
+          <tr><td class="k">Blog / 更新情報</td><td class="v">開発記録・リリースノート</td><td><span class="pill ask">要否を確認</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="lede" style="margin-top:14px;">
+      プライバシーポリシーは、こちらで足した項目です。<strong>フォームで氏名とメールアドレスを受け取ること</strong>と、<strong>アクセス解析でクッキーを使うこと</strong>の2点で必要になります。文面のたたき台はこちらで用意します。
+    </p>
+    <p class="lede" style="margin-top:14px;">
+      <span class="q">❓</span> プロダクト詳細ページを<strong>何本作るか</strong>＝いま運用中のサブドメインが何本あって、どれを載せるかがまだ未確認です。ここが決まらないと作業量が見積もれません。
+    </p>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>いま動いているサブドメインの棚卸し</h2></div>
+    <p class="lede">埋めていただきたい表です。分かる範囲で構いません。</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>サブドメイン</th><th>プロダクト</th><th>ログイン</th><th>サイトに載せる</th></tr></thead>
+        <tbody>
+          <tr><td class="k">engineer.</td><td class="v">今回作るポートフォリオ本体</td><td class="v">不要（一般公開）</td><td><span class="pill fix">—</span></td></tr>
+          <tr><td class="k"><span class="q">❓</span> 〇〇.</td><td class="v">埋め込み型RAGチャットボット</td><td class="v"><span class="q">❓</span> 必要</td><td><span class="pill ask">要確認</span></td></tr>
+          <tr><td class="k"><span class="q">❓</span> 〇〇.</td><td class="v">みんなの駐車場マップ</td><td class="v"><span class="q">❓</span></td><td><span class="pill ask">要確認</span></td></tr>
+          <tr><td class="k"><span class="q">❓</span> 〇〇.</td><td class="v"><span class="q">❓</span> その他（何本あるか要確認）</td><td class="v"><span class="q">❓</span></td><td><span class="pill ask">要確認</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>トップページ 仮モック</h2></div>
+    <p class="lede">見た目のデザインではなく「どんな情報がどの順で並ぶか」を見てください。色や書体は後で決めます。</p>
+
+    <div class="frame">
+      <div class="chrome">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="url">https://engineer.v2008.coreserver.jp/</span>
+      </div>
+      <div class="wf">
+
+        <div class="wf-nav">
+          <span class="wf-logo">〇〇 〇〇 &nbsp;/&nbsp; Portfolio</span>
+          <span class="wf-links"><span>Works</span><span>About</span><span>Contact</span></span>
+        </div>
+
+        <div class="wf-hero">
+          <h3>つくったものを、画面と一緒に紹介します</h3>
+          <p>ここに1〜2文の紹介が入ります。「何をつくる人なのか」がスクロールせずに分かる位置に置きます。</p>
+          <span class="btn">作ったものを見る</span>
+          <div><span class="ann">❓ 見出しの方向性（人の紹介 / 作品の紹介）：要確認</span></div>
+        </div>
+
+        <div class="wf-block">
+          <p class="wf-label">Works — 作ったもの</p>
+          <div class="cards">
+            <div class="card">
+              <div class="thumb">画面写真<br>（サムネイル）</div>
+              <span class="lock">🔒 ログインが必要</span>
+              <h4>埋め込み型RAGチャットボット</h4>
+              <p>1〜2行の説明文<br><span class="q">❓</span> 説明の書きぶりは要確認</p>
+            </div>
+            <div class="card">
+              <div class="thumb">画面写真<br>（サムネイル）</div>
+              <span class="lock">🔒 ログインが必要</span>
+              <h4>みんなの駐車場マップ</h4>
+              <p>1〜2行の説明文<br><span class="q">❓</span> ログイン要否も要確認</p>
+            </div>
+            <div class="card">
+              <div class="thumb">画面写真<br>（サムネイル）</div>
+              <span class="lock">🔒 ログインが必要</span>
+              <h4>〇〇〇〇</h4>
+              <p><span class="q">❓</span> 何件載せるか：要確認</p>
+            </div>
+          </div>
+          <span class="ann">❓ カードをクリックしたときの遷移先（詳細ページ / サービス本体）：要確認</span><br>
+          <span class="ann">❓ 一覧の管理方法（HTML直書き / データファイル1つにまとめる）：要確認</span>
+        </div>
+
+        <div class="wf-block">
+          <p class="wf-label">About — つくっている人</p>
+          <div class="rows">
+            <div class="row"><time>紹介</time><span>〇〇〇〇　<span class="q">❓</span> 本名 / ハンドルネーム、顔写真の要否も要確認</span></div>
+            <div class="row"><time>技術</time><span>Python / JavaScript / 〇〇　<span class="q">❓</span> 要確認</span></div>
+            <div class="row"><time>資格</time><span>〇〇〇〇　<span class="q">❓</span> 掲載要否を確認</span></div>
+          </div>
+        </div>
+
+        <div class="wf-block">
+          <p class="wf-label">Contact</p>
+          <p style="margin:0 0 12px; font-size:13px; color:var(--ink-2);">ご連絡はこちらから。</p>
+          <div class="rows" style="max-width:420px; margin-bottom:14px;">
+            <div class="row"><time>お名前</time><span style="flex:1; border:1px solid var(--line-2); border-radius:2px; padding:4px 10px;">　</span></div>
+            <div class="row"><time>メール</time><span style="flex:1; border:1px solid var(--line-2); border-radius:2px; padding:4px 10px;">　</span></div>
+            <div class="row"><time>本文</time><span style="flex:1; border:1px solid var(--line-2); border-radius:2px; padding:4px 10px; height:56px;">　</span></div>
+          </div>
+          <span class="btn">送信する</span>
+          <div>
+            <span class="ann">❓ 送信先のメールアドレス：要確認</span><br>
+            <span class="ann">❓ 迷惑メール対策の方式（画像認証を出す / 見えない判定のみ）：要確認</span><br>
+            <span class="ann">❓ 送信後の動き（完了ページへ移動 / その場に完了メッセージ）：要確認</span>
+          </div>
+        </div>
+
+        <div class="wf-foot">© 2026 〇〇 〇〇　<span class="q">❓</span> 本名 / ハンドルネームどちらで出すか：要確認</div>
+      </div>
+    </div>
+    <p class="frame-cap">▲ トップページ（一覧まで）</p>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">05</span><h2>プロダクト詳細ページ 仮モック（取説形式）</h2></div>
+    <p class="lede">今回いちばん重要なページです。来訪者はログインできない前提なので、<strong>ここを読むだけで「何ができるアプリか」が分かる</strong>必要があります。</p>
+
+    <div class="frame">
+      <div class="chrome">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="url">https://engineer.v2008.coreserver.jp/works/rag-chatbot/　❓ URLの付け方：要確認</span>
+      </div>
+      <div class="wf">
+
+        <div class="wf-nav">
+          <span class="wf-logo">〇〇 〇〇 &nbsp;/&nbsp; Portfolio</span>
+          <span class="wf-links"><span>← 一覧に戻る</span></span>
+        </div>
+
+        <div class="wf-hero" style="padding-bottom:28px;">
+          <span class="lock">🔒 このサービスの利用にはログインが必要です</span>
+          <h3 style="margin-top:8px;">埋め込み型RAGチャットボット</h3>
+          <p>社内文書を読み込ませて、質問に答えさせる仕組みです。ここに3〜4行で「誰の・どんな困りごとを・どう解決するものか」を書きます。</p>
+          <span class="btn">サービスを開く（要ログイン）</span>
+          <div><span class="ann">❓ 注意書きの文言（「ログインできる方のみご利用いただけます」等）：要確認</span></div>
+        </div>
+
+        <div class="wf-block">
+          <p class="wf-label">Overview — 全体画面</p>
+          <div class="shot-big">メイン画面のスクリーンショット（大）<br>クリックで拡大表示 🔍</div>
+        </div>
+
+        <div class="wf-block">
+          <p class="wf-label">How it works — 使い方（画面写真での取説）</p>
+          <div class="steps">
+            <div class="step">
+              <div class="shot">画面写真</div>
+              <div>
+                <h5>資料をアップロードする</h5>
+                <p>PDFやテキストを登録します。ここに1〜3行の説明。<span class="q">❓</span> ステップを何段階に分けるか：要確認</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="shot">画面写真</div>
+              <div>
+                <h5>質問を入力する</h5>
+                <p>知りたいことを日本語で入力します。ここに1〜3行の説明。</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="shot">画面写真</div>
+              <div>
+                <h5>根拠つきで回答が返る</h5>
+                <p>どの資料のどこを見て答えたかが分かります。ここに1〜3行の説明。</p>
+              </div>
+            </div>
+          </div>
+          <span class="ann">❓ 1プロダクトあたり何枚撮るか（推奨：全体1枚＋手順3〜5枚）：要確認</span>
+        </div>
+
+        <div class="wf-block">
+          <p class="wf-label">Spec — 使用技術・構成</p>
+          <div class="rows">
+            <div class="row"><time>言語</time><span>Python / 〇〇　<span class="q">❓</span> 要確認</span></div>
+            <div class="row"><time>構成</time><span>〇〇〇〇　<span class="q">❓</span> どこまで技術的に書くか要確認</span></div>
+            <div class="row"><time>公開日</time><span>2026.〇〇.〇〇　<span class="q">❓</span> 要確認</span></div>
+          </div>
+          <span class="ann">❓ 構成図・システム図を載せるか：要確認</span>
+        </div>
+
+        <div class="wf-foot">← 作ったもの一覧に戻る</div>
+      </div>
+    </div>
+    <p class="frame-cap">▲ プロダクト詳細ページ（1プロダクトにつき1枚）</p>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">06</span><h2>非機能要件（決まった内容から確定した分）</h2></div>
+    <p class="lede">機能そのものではないけれど、決めておかないと後で作り直しになる項目です。</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>分類</th><th>内容</th><th>状態</th></tr></thead>
+        <tbody>
+          <tr><td class="k">サーバー</td><td class="v">コアサーバー v2008 / Apache・PHP利用可</td><td><span class="pill fix">確定</span></td></tr>
+          <tr><td class="k">常時SSL</td><td class="v">無料SSLを有効化し、http でのアクセスは https へ自動転送</td><td><span class="pill fix">確定</span></td></tr>
+          <tr><td class="k">表示端末</td><td class="v">PC・スマートフォン・タブレット</td><td><span class="pill fix">確定</span></td></tr>
+          <tr><td class="k">画像の扱い</td><td class="v">ダミーデータで撮影。公開前に写り込みチェックを1回実施</td><td><span class="pill fix">確定</span></td></tr>
+          <tr><td class="k">個人情報</td><td class="v">フォーム経由で氏名・メールを受領。プライバシーポリシーを掲示</td><td><span class="pill fix">確定</span></td></tr>
+          <tr><td class="k">迷惑メール対策</td><td class="v">フォームに自動送信よけを設置</td><td><span class="pill ask">方式を確認</span></td></tr>
+          <tr><td class="k">表示速度</td><td class="v">画面写真が主役のため、画像を軽量化して読み込みを速くする</td><td><span class="pill fix">確定</span></td></tr>
+          <tr><td class="k">検索対策</td><td class="v">ページごとのタイトル・説明文、SNS共有時のカード表示、sitemap.xml</td><td><span class="pill ask">要否を確認</span></td></tr>
+          <tr><td class="k">バックアップ</td><td class="v">サイトのファイル一式を手元にも保管</td><td><span class="pill ask">方法を確認</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="warn" style="margin-top:22px;">
+      <b>公開前に必ず実施したいチェック</b>
+      画面写真はダミーデータで撮り直す方針で確定しましたが、それでも次の3点は写り込みが起きやすい箇所です。公開前チェックとして要件定義書に明記します。<br>
+      ① ブラウザのURLバー・タブに社内向けアドレスや別サービス名が写っていないか／② ログイン画面の入力欄にIDが残っていないか／③ 通知バッジ・履歴・サジェストに実在の氏名が出ていないか
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">07</span><h2>次に確認したいこと</h2></div>
+    <p class="lede">迷うものは「どちらでもよい」で構いません。保留として記録し、後で決められます。</p>
+    <ul class="ask-list">
+      <li>
+        <h4>いま運用中のサブドメイン（← ここが最優先）</h4>
+        <p>ページ数も作業量も、ここで決まります。何本あって、どれをサイトに載せるかを教えてください。上の「棚卸し」の表を埋める形で構いません。</p>
+        <div class="choices"><span>本数：〇本</span><span>載せる：〇本</span></div>
+      </li>
+      <li>
+        <h4>プロダクトごとの詳細ページ</h4>
+        <p>上のモックのような専用ページを1本ずつ作るか、トップページの中で少し詳しく書くだけにするかです。</p>
+        <div class="choices"><span>A. 専用ページを作る</span><span>B. トップ内で完結させる</span></div>
+      </li>
+      <li>
+        <h4>自己紹介の載せ方</h4>
+        <p>載せる方向で確定しました。トップページの中に数行だけ入れるか、専用ページを1枚立てて経歴までしっかり書くかです。</p>
+        <div class="choices"><span>A. トップ内に数行</span><span>B. 専用ページを立てる</span></div>
+      </li>
+      <li>
+        <h4>名前の出し方</h4>
+        <p>サイト上で本名を出すか、ハンドルネームにするかです。顔写真を載せるかどうかもあわせて。</p>
+        <div class="choices"><span>A. 本名</span><span>B. ハンドルネーム</span></div>
+      </li>
+      <li>
+        <h4>迷惑メール対策の方式</h4>
+        <p>フォームに機械からの自動送信が来るのを防ぐ仕組みです。「私はロボットではありません」の画像認証を出すか、来訪者には見えないまま裏で判定するかです。</p>
+        <div class="choices"><span>A. 画像認証を出す</span><span>B. 見えない判定のみ</span></div>
+      </li>
+      <li>
+        <h4>Blog・更新情報</h4>
+        <p>開発記録やリリースノートを継続的に書く場所を作るかどうかです。静的HTMLなので、記事ごとにファイルを作る運用になります。</p>
+        <div class="choices"><span>A. 必要</span><span>B. 不要</span></div>
+      </li>
+      <li>
+        <h4>公開希望時期</h4>
+        <p>いつまでに公開したいかです。決まっていなければ「未定」で構いません。</p>
+        <div class="choices"><span>〇月〇日ごろ</span><span>未定</span></div>
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">08</span><h2>未決事項 一覧</h2></div>
+    <p class="lede">現時点で <span class="q">❓</span> が付いている項目です。要件定義書の「未決事項」にそのまま転記します。</p>
+    <ul class="plain">
+      <li><strong>運用中サブドメインの本数と一覧</strong>（載せる／載せないの仕分け）</li>
+      <li>プロダクト詳細ページの要否と、1本あたりの説明の深さ</li>
+      <li>画面写真の枚数（1プロダクトあたり何枚撮るか）</li>
+      <li>自己紹介の載せ方（トップ内 / 専用ページ）</li>
+      <li>本名 / ハンドルネーム、顔写真の掲載可否</li>
+      <li>迷惑メール対策の方式（画像認証 / 見えない判定）</li>
+      <li>フォームの送信先メールアドレスと、送信後の画面の動き</li>
+      <li>ログインが必要なサービスへのリンクに添える注意書きの文言</li>
+      <li>一覧の管理方法（データファイル / HTML直書き）</li>
+      <li>Blog・更新情報セクションの要否</li>
+      <li>検索対策（sitemap.xml、SNS共有カード）の要否</li>
+      <li>バックアップの方法</li>
+      <li>業務で作ったものの公開可否</li>
+      <li>公開希望時期</li>
+    </ul>
+  </section>
+
+  <footer>
+    ヒアリング用仮モック 第2版 — 回答内容にあわせて本モックを更新し、最終的に要件定義書（Word）として出力します。
+  </footer>
+
+</div>
