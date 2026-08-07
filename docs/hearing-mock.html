@@ -142,6 +142,7 @@
     border:1px solid var(--line-2); border-radius:2px; padding:1px 7px; margin-bottom:7px;
     color:var(--ink-2); background:var(--surface-2);
   }
+  .lock.open{color:var(--ok); border-color:var(--ok-line); background:var(--ok-bg);}
   .rows{display:flex; flex-direction:column; gap:9px;}
   .row{display:flex; gap:12px; font-size:12.5px; color:var(--ink-2); padding-bottom:9px; border-bottom:1px dotted var(--line-2);}
   .row:last-child{border-bottom:0; padding-bottom:0;}
@@ -204,12 +205,12 @@
 <div class="wrap">
 
   <div class="notice">
-    <strong>📋 これはヒアリング途中の仮モックです（第4版）</strong>
+    <strong>📋 これはヒアリング途中の仮モックです（第5版）</strong>
     <p>決定事項ではありません。ご回答をもとに更新しています。<span class="q">❓</span> が付いている箇所が、これから決める部分です。</p>
   </div>
 
   <header class="masthead">
-    <p class="eyebrow">仮モック / 第4版</p>
+    <p class="eyebrow">仮モック / 第5版</p>
     <h1>ポートフォリオサイト（取扱説明つき）</h1>
     <p class="sub">engineer.v2008.coreserver.jp / 静的HTML — 要件ヒアリング用たたき台</p>
   </header>
@@ -232,6 +233,11 @@
         <li><b>スマホ対応</b><span>する</span></li>
         <li><b>アクセス解析</b><span>入れる（Googleアナリティクス）</span></li>
         <li><b>画像拡大</b><span>クリックで大きく表示できるようにする</span></li>
+        <li><b>公開の進め方</b><span>自己紹介など必要な箇所ができた時点で公開し、ポートフォリオは随時追加</span></li>
+        <li><b>一覧の管理</b><span>データファイルで管理（随時追加のため、HTML直書きは不可）</span></li>
+        <li><b>ログイン要否</b><span>混在。誰でも使えるものもある（飲みゲームなど）</span></li>
+        <li><b>crafy</b><span>キャンペーンサイト</span></li>
+        <li><b>revenge.co.jp</b><span>掲載許可あり</span></li>
       </ul>
     </div>
     <p class="lede" style="margin:0;">
@@ -272,74 +278,89 @@
         <thead><tr><th>ディレクトリ</th><th>プロダクト名 / 内容</th><th>ログイン</th><th>載せる</th></tr></thead>
         <tbody>
           <tr><td class="k">engineer.</td><td class="v">今回作るポートフォリオ本体</td><td class="v">不要（一般公開）</td><td><span class="pill fix">—</span></td></tr>
-          <tr><td class="k">rag.</td><td class="v">埋め込み型RAGチャットボット</td><td class="v"><span class="q">❓</span></td><td><span class="pill ask">要確認</span></td></tr>
-          <tr><td class="k">map.</td><td class="v">みんなの駐車場マップ</td><td class="v"><span class="q">❓</span></td><td><span class="pill ask">要確認</span></td></tr>
-          <tr><td class="k">event.</td><td class="v">イベント事前決済</td><td class="v"><span class="q">❓</span></td><td><span class="pill ask">要確認</span></td></tr>
-          <tr><td class="k">webbox.</td><td class="v">WEB意見箱</td><td class="v"><span class="q">❓</span></td><td><span class="pill ask">要確認</span></td></tr>
-          <tr><td class="k">enlink.</td><td class="v">ビジネスマッチング</td><td class="v"><span class="q">❓</span></td><td><span class="pill ask">要確認</span></td></tr>
-          <tr><td class="k">alcohol.</td><td class="v">飲みゲーム</td><td class="v"><span class="q">❓</span></td><td><span class="pill ask">要確認</span></td></tr>
-          <tr><td class="k">crafy.</td><td class="v"><span class="q">❓</span> 内容を確認（8/7 更新＝制作中？）</td><td class="v"><span class="q">❓</span></td><td><span class="pill ask">要確認</span></td></tr>
-          <tr><td class="k">revenge.co.jp</td><td class="v"><strong>受託制作</strong>：企業のホームページを制作し、運用も継続中</td><td class="v">—</td><td><span class="pill ask">許可を確認</span></td></tr>
+          <tr><td class="k">rag.</td><td class="v">埋め込み型RAGチャットボット</td><td class="v"><span class="q">❓</span> 要確認</td><td><span class="pill fix">載せる</span></td></tr>
+          <tr><td class="k">map.</td><td class="v">みんなの駐車場マップ</td><td class="v"><span class="q">❓</span> 要確認</td><td><span class="pill fix">載せる</span></td></tr>
+          <tr><td class="k">event.</td><td class="v">イベント事前決済</td><td class="v"><span class="q">❓</span> 要確認</td><td><span class="pill fix">載せる</span></td></tr>
+          <tr><td class="k">webbox.</td><td class="v">WEB意見箱</td><td class="v"><span class="q">❓</span> 要確認</td><td><span class="pill fix">載せる</span></td></tr>
+          <tr><td class="k">enlink.</td><td class="v">ビジネスマッチング</td><td class="v"><span class="q">❓</span> 要確認</td><td><span class="pill fix">載せる</span></td></tr>
+          <tr><td class="k">alcohol.</td><td class="v">飲みゲーム</td><td class="v">不要（誰でも遊べる）</td><td><span class="pill fix">載せる</span></td></tr>
+          <tr><td class="k">crafy.</td><td class="v">キャンペーンサイト</td><td class="v">不要（想定）<span class="q">❓</span></td><td><span class="pill fix">載せる</span></td></tr>
+          <tr><td class="k">revenge.co.jp</td><td class="v">企業ホームページの制作・運用（受託）</td><td class="v">不要</td><td><span class="pill fix">許可済み</span></td></tr>
         </tbody>
       </table>
     </div>
-    <div class="warn" style="margin-top:18px;">
-      <b>revenge.co.jp は性格が違います</b>
-      これは他社のホームページの受託制作・運用です。自作サービスとは分けて扱う必要があります。<br>
-      ① 掲載には<strong>先方の許可</strong>が必要です（会社名・URLを出すか、「制作実績：〇〇業 A社様」のように伏せるかも含めて確認）／
-      ② 継続して運用しているという事実は<strong>「作れるだけでなく、任され続けている」証明</strong>になるため、許可が得られるならぜひ載せたい実績です。
-    </div>
+    <p class="lede" style="margin-top:14px;">
+      <span class="q">❓</span> 残っているのは<strong>ログイン要否の切り分け</strong>だけです。飲みゲーム以外にも誰でも使えるものがあれば教えてください。ここで扱いが大きく変わります（次のセクション参照）。
+    </p>
   </section>
 
   <section>
-    <div class="sec-head"><span class="sec-num">03c</span><h2>Works を2つに分ける提案</h2></div>
-    <p class="lede">自作サービスと受託制作は、見る人にとって意味がまったく違います。同じ棚に混ぜると、どちらの価値も伝わりにくくなります。</p>
+    <div class="sec-head"><span class="sec-num">03b</span><h2>Works を2つに分ける提案</h2></div>
+    <p class="lede">crafy がキャンペーンサイトと分かったことで、分け方がはっきりしました。<strong>「動くサービスを作った」ものと「サイトを作った」もの</strong>は、見る人にとって意味が違います。同じ棚に混ぜると、どちらの価値も伝わりにくくなります。</p>
     <div class="tbl-scroll">
       <table>
         <thead><tr><th>カテゴリ</th><th>中身</th><th>見せ方</th></tr></thead>
         <tbody>
           <tr>
-            <td class="k">自作サービス<br><span style="font-size:12.5px; color:var(--ink-3);">7本</span></td>
-            <td class="v">RAGチャットボット／駐車場マップ／イベント事前決済／WEB意見箱／ビジネスマッチング／飲みゲーム／crafy</td>
-            <td class="v">画面写真＋説明文で<strong>取説形式</strong>。ログインが必要なため実物は触れない</td>
+            <td class="k">サービス開発<br><span style="font-size:12.5px; color:var(--ink-3);">6本</span></td>
+            <td class="v">RAGチャットボット／駐車場マップ／イベント事前決済／WEB意見箱／ビジネスマッチング／飲みゲーム</td>
+            <td class="v">ログインが必要なものは<strong>画面写真＋説明文で取説形式</strong>。誰でも使えるものは実物へのリンクを前面に出す</td>
           </tr>
           <tr>
-            <td class="k">受託制作<br><span style="font-size:12.5px; color:var(--ink-3);">1本</span></td>
-            <td class="v">revenge.co.jp（企業ホームページ／運用も継続）</td>
-            <td class="v"><strong>実物が見られる</strong>のでリンクを出すだけで伝わる。取説は不要。「制作・運用」の役割だけ書く</td>
+            <td class="k">Web制作<br><span style="font-size:12.5px; color:var(--ink-3);">2本</span></td>
+            <td class="v">crafy（キャンペーンサイト）／revenge.co.jp（企業ホームページ・運用も継続）</td>
+            <td class="v"><strong>実物が見られる</strong>のでリンクを出すだけで伝わる。取説は不要。スクリーンショット1枚と役割の記載のみ</td>
           </tr>
         </tbody>
       </table>
     </div>
     <p class="lede" style="margin-top:16px;">
-      受託制作はログインなしで誰でも見られるため、取説を作る必要がありません。<strong>撮影・説明文の作業が発生するのは自作サービス側だけ</strong>です。
+      この分け方には実利もあります。<strong>Web制作の2本は撮影1枚ずつで完成する</strong>ため、次の第1段階の公開にそのまま使えます。
+      また「サービスも作れるし、サイト制作も受けられる」という幅が、カテゴリが分かれていることで一目で伝わります。
+    </p>
+    <p class="lede" style="margin:0;">
+      <span class="q">❓</span> crafy が自社企画のキャンペーンサイトか、受託案件かによって、会社名を出すかどうかが変わります。ここだけ確認させてください。
     </p>
   </section>
 
   <section>
-    <div class="sec-head"><span class="sec-num">03b</span><h2>これで見えた作業量</h2></div>
-    <p class="lede">取説の作成が必要なのは<strong>自作サービス7本</strong>だけです（受託制作は実物が見られるためリンクのみ）。それでもこれだけの作業になります。</p>
+    <div class="sec-head"><span class="sec-num">03c</span><h2>段階公開プラン</h2></div>
+    <p class="lede">「必要な箇所ができたら公開し、ポートフォリオは随時追加」というご方針にあわせて、3段階に分けました。<strong>公開までの作業量が大きく下がります。</strong></p>
     <div class="tbl-scroll">
       <table>
-        <thead><tr><th>項目</th><th>自作7本すべて載せる場合</th><th>まず3本に絞る場合</th></tr></thead>
+        <thead><tr><th>段階</th><th>やること</th><th>撮影</th><th>この時点の状態</th></tr></thead>
         <tbody>
-          <tr><td class="k">総ページ数</td><td class="v">12ページ<br><span style="font-size:12.5px;">（トップ＋詳細7＋About＋Contact＋送信完了＋ポリシー）</span></td><td class="v">8ページ</td></tr>
-          <tr><td class="k">撮影する画面写真</td><td class="v">約 28〜42枚<br><span style="font-size:12.5px;">（1本あたり 全体1枚＋手順3〜5枚）</span></td><td class="v">約 12〜18枚</td></tr>
-          <tr><td class="k">書く説明文</td><td class="v">7本分の紹介文と手順説明</td><td class="v">3本分</td></tr>
-          <tr><td class="k">ダミーデータ準備</td><td class="v">7サービス分、それぞれ用意して投入</td><td class="v">3サービス分</td></tr>
-          <tr><td class="k">受託制作</td><td class="v" colspan="2">1本。スクリーンショット1枚とリンクのみ（作業量にほぼ影響なし）</td></tr>
+          <tr>
+            <td class="k">第1段階<br><span style="font-size:12.5px; color:var(--ink-3);">公開</span></td>
+            <td class="v">サイトの器を作る（トップ・About・Contact・ポリシー）＋<strong>誰でも見られる3本を載せる</strong><br>飲みゲーム／crafy（キャンペーンサイト）／revenge.co.jp</td>
+            <td class="v"><strong>3枚</strong><br><span style="font-size:12.5px;">実物が見られるので各1枚でよい</span></td>
+            <td class="v">この時点で公開できる。空っぽに見えない</td>
+          </tr>
+          <tr>
+            <td class="k">第2段階<br><span style="font-size:12.5px; color:var(--ink-3);">随時</span></td>
+            <td class="v">ログインが必要なサービスを、取説つきで1本ずつ追加</td>
+            <td class="v">1本あたり<br><strong>4〜6枚</strong></td>
+            <td class="v">1本仕上がるたびに公開。まとめて作らない</td>
+          </tr>
+          <tr>
+            <td class="k">第3段階<br><span style="font-size:12.5px; color:var(--ink-3);">任意</span></td>
+            <td class="v">Blog・更新情報、検索対策の追い込み</td>
+            <td class="v">—</td>
+            <td class="v">必要になったら</td>
+          </tr>
         </tbody>
       </table>
     </div>
     <p class="lede" style="margin-top:16px;">
-      SEからの提案：<strong>まず3本で公開して、残りは後から足す</strong>進め方をおすすめします。
-      7本分のダミーデータ準備と撮影を揃えてから公開しようとすると、公開自体が止まりやすいためです。
-      サイトの作り自体は変わらないので、後から追加しても作り直しにはなりません。
+      要点は<strong>「誰でも見られる3本を先に出す」</strong>ところです。この3本は実物へのリンクを出すだけで伝わるので、取説を書く必要がありません。
+      撮影3枚で公開までたどり着けます。ログインが必要な5本は、写真を撮りためながら後から足していく形になります。
     </p>
-    <p class="lede" style="margin:0;">
-      またこの本数なら、<strong>一覧はデータファイル1つで管理する</strong>方式を強くおすすめします。
-      プロダクトが増えるたびにトップページのHTMLを直接いじる作りにすると、7本の時点でもう更新が面倒になります。
-    </p>
+    <div class="warn" style="margin-top:20px;">
+      <b>この進め方だと、一覧は必ずデータファイル管理にする必要があります</b>
+      「随時追加」ということは、公開後も繰り返し一覧に手を入れるということです。<br>
+      トップページのHTMLを毎回書き換える作りにすると、追加のたびにレイアウトを壊すリスクを抱えることになり、そのうち追加自体が億劫になります。
+      一覧データを1ファイルにまとめ、<strong>1件追加するときは、そこに数行足すだけ</strong>で済む作りにします。ここは選択ではなく、ご方針から自動的に決まる要件です。
+    </div>
   </section>
 
   <section>
@@ -366,8 +387,14 @@
         </div>
 
         <div class="wf-block">
-          <p class="wf-label">Services — つくったサービス（自作）</p>
+          <p class="wf-label">Services — サービス開発（6本）</p>
           <div class="cards">
+            <div class="card">
+              <div class="thumb">画面写真<br>（サムネイル）</div>
+              <span class="lock open">▶ 誰でも遊べる</span>
+              <h4>飲みゲーム</h4>
+              <p>1〜2行の説明文<br>実物へのリンクを前面に出す</p>
+            </div>
             <div class="card">
               <div class="thumb">画面写真<br>（サムネイル）</div>
               <span class="lock">🔒 要ログイン</span>
@@ -376,56 +403,49 @@
             </div>
             <div class="card">
               <div class="thumb">画面写真<br>（サムネイル）</div>
-              <span class="lock">🔒 要ログイン</span>
+              <span class="lock"><span class="q">❓</span> ログイン要否</span>
               <h4>みんなの駐車場マップ</h4>
               <p>1〜2行の説明文</p>
             </div>
             <div class="card">
               <div class="thumb">画面写真<br>（サムネイル）</div>
-              <span class="lock">🔒 要ログイン</span>
+              <span class="lock"><span class="q">❓</span> ログイン要否</span>
               <h4>イベント事前決済</h4>
               <p>1〜2行の説明文</p>
             </div>
             <div class="card">
               <div class="thumb">画面写真<br>（サムネイル）</div>
-              <span class="lock">🔒 要ログイン</span>
+              <span class="lock"><span class="q">❓</span> ログイン要否</span>
               <h4>WEB意見箱</h4>
               <p>1〜2行の説明文</p>
             </div>
             <div class="card">
               <div class="thumb">画面写真<br>（サムネイル）</div>
-              <span class="lock">🔒 要ログイン</span>
+              <span class="lock"><span class="q">❓</span> ログイン要否</span>
               <h4>ビジネスマッチング</h4>
               <p>1〜2行の説明文</p>
             </div>
-            <div class="card">
-              <div class="thumb">画面写真<br>（サムネイル）</div>
-              <span class="lock"><span class="q">❓</span> ログイン要否</span>
-              <h4>飲みゲーム</h4>
-              <p>1〜2行の説明文</p>
-            </div>
-            <div class="card">
-              <div class="thumb">画面写真<br>（サムネイル）</div>
-              <span class="lock"><span class="q">❓</span></span>
-              <h4>crafy <span class="q">❓</span></h4>
-              <p><span class="q">❓</span> 内容・掲載可否は要確認</p>
-            </div>
           </div>
-          <span class="ann">❓ 並び順（新しい順 / おすすめ順 / 手動）：要確認</span><br>
-          <span class="ann">❓ 一覧の管理方法（HTML直書き / データファイル1つにまとめる）：要確認</span>
+          <span class="ann">誰でも使えるものを先に並べる案（触れるものから見せる）：❓ 並び順は要確認</span>
         </div>
 
         <div class="wf-block">
-          <p class="wf-label">Client Works — 受託制作</p>
+          <p class="wf-label">Web Works — Web制作（2本）</p>
           <div class="cards" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));">
             <div class="card">
               <div class="thumb">サイトのスクリーンショット</div>
-              <h4>revenge.co.jp <span class="q">❓</span> 表記は要確認</h4>
-              <p>企業ホームページの制作および運用<br>実物が見られるためリンクのみ。取説は不要</p>
+              <span class="lock open">▶ 誰でも見られる</span>
+              <h4>revenge.co.jp</h4>
+              <p>企業ホームページの制作および運用<br>掲載許可あり</p>
+            </div>
+            <div class="card">
+              <div class="thumb">サイトのスクリーンショット</div>
+              <span class="lock open">▶ 誰でも見られる</span>
+              <h4>crafy — キャンペーンサイト</h4>
+              <p><span class="q">❓</span> 自社企画か受託かで会社名の出し方が変わる</p>
             </div>
           </div>
-          <span class="ann">❓ 掲載の許可、会社名を出すか伏せるか：要確認</span><br>
-          <span class="ann">❓ 他にも受託制作の実績があるか：要確認</span>
+          <span class="ann">❓ 他にもWeb制作の実績があるか（このサーバー外を含む）：要確認</span>
         </div>
 
         <div class="wf-block">
@@ -564,34 +584,19 @@
     <p class="lede">迷うものは「どちらでもよい」で構いません。保留として記録し、後で決められます。</p>
     <ul class="ask-list">
       <li>
-        <h4>公開の進め方（← ここが最優先）</h4>
-        <p>7本すべての取説を作り終えてから公開するか、まず3本ほどで公開して残りを後から足していくかです。</p>
-        <div class="choices"><span>A. まず3本で公開して追加</span><span>B. 7本揃えてから公開</span></div>
+        <h4>どれが「誰でも使える」ものですか（← ここが最優先）</h4>
+        <p>飲みゲームのほかにも、ログインなしで使えるものがあれば教えてください。誰でも使えるものは実物へのリンクを出すだけで済むので、<strong>第1段階の公開にそのまま載せられます</strong>。</p>
+        <div class="choices"><span>駐車場マップ：要 / 不要</span><span>イベント事前決済：要 / 不要</span><span>WEB意見箱：要 / 不要</span><span>ビジネスマッチング：要 / 不要</span><span>RAGチャットボット：要 / 不要</span></div>
       </li>
       <li>
-        <h4>crafy は何のサービスですか</h4>
-        <p>ここだけ内容が分かっていません。今日の日付で更新されているので、制作中のものかもしれません。制作中なら今回は載せない選択もあります。</p>
-        <div class="choices"><span>crafy = 〇〇</span><span>制作中なので載せない</span></div>
+        <h4>crafy は自社企画ですか、受託案件ですか</h4>
+        <p>キャンペーンサイトとのことですが、自分で企画したものか、依頼を受けて作ったものかで、会社名の出し方が変わります。</p>
+        <div class="choices"><span>A. 自社企画</span><span>B. 受託案件</span></div>
       </li>
       <li>
-        <h4>各サービスのログイン要否</h4>
-        <p>7本すべてログインが必要でしょうか。たとえば「飲みゲーム」のように、誰でも遊べるものがあれば、そちらは実物へのリンクをそのまま出せます。</p>
-        <div class="choices"><span>A. 全部ログインが必要</span><span>B. 一部は誰でも使える</span></div>
-      </li>
-      <li>
-        <h4>revenge.co.jp の掲載</h4>
-        <p>企業のホームページの受託制作なので、載せるには先方の許可が必要です。会社名を出すか伏せるかも含めて確認が必要です。</p>
-        <div class="choices"><span>A. 会社名を出して載せる</span><span>B. 会社名を伏せて載せる</span><span>C. 載せない</span></div>
-      </li>
-      <li>
-        <h4>受託制作の実績は他にもありますか</h4>
-        <p>revenge.co.jp 以外にも制作した企業サイトがあれば、「制作実績」として並べられます。このサーバー外にあるものも含めて。</p>
+        <h4>Web制作の実績は他にもありますか</h4>
+        <p>crafy / revenge.co.jp 以外にも制作したサイトがあれば「制作実績」として並べられます。このサーバー外にあるものも含めて。</p>
         <div class="choices"><span>A. 他にもある</span><span>B. これだけ</span></div>
-      </li>
-      <li>
-        <h4>一覧の管理方法</h4>
-        <p>プロダクトが増えたときに、トップページのHTMLを直接書き換えるか、一覧データを1ファイルにまとめておいてそこに1件足すだけで済むようにするかです。7本あるので後者を推奨します。</p>
-        <div class="choices"><span>A. データファイルで管理</span><span>B. HTML直書きでよい</span></div>
       </li>
       <li>
         <h4>プロダクトごとの詳細ページ</h4>
@@ -630,13 +635,12 @@
     <div class="sec-head"><span class="sec-num">08</span><h2>未決事項 一覧</h2></div>
     <p class="lede">現時点で <span class="q">❓</span> が付いている項目です。要件定義書の「未決事項」にそのまま転記します。</p>
     <ul class="plain">
-      <li><strong>公開の進め方</strong>（まず3本 / 7本揃えてから）</li>
-      <li><strong>crafy の内容</strong>と掲載可否（制作中か）</li>
-      <li>各サービスのログイン要否（誰でも使えるものがあるか）</li>
-      <li>revenge.co.jp の掲載許可、会社名を出すか伏せるか</li>
-      <li>受託制作の実績が他にもあるか</li>
-      <li>自作サービスの並び順</li>
+      <li><strong>サービス6本のログイン要否の切り分け</strong>（どれが誰でも使えるか）</li>
+      <li>crafy が自社企画か受託案件か（会社名の出し方）</li>
+      <li>Web制作の実績が他にもあるか（サーバー外を含む）</li>
+      <li>一覧の並び順</li>
       <li>プロダクト詳細ページの要否と、1本あたりの説明の深さ</li>
+      <li><strong>デザイン方針</strong>（参考サイト4件 — スクリーンショット待ち）</li>
       <li>画面写真の枚数（1プロダクトあたり何枚撮るか）</li>
       <li>自己紹介の載せ方（トップ内 / 専用ページ）</li>
       <li>本名 / ハンドルネーム、顔写真の掲載可否</li>
@@ -653,7 +657,7 @@
   </section>
 
   <footer>
-    ヒアリング用仮モック 第4版 — 回答内容にあわせて本モックを更新し、最終的に要件定義書（Word）として出力します。
+    ヒアリング用仮モック 第5版 — 回答内容にあわせて本モックを更新し、最終的に要件定義書（Word）として出力します。
   </footer>
 
 </div>
