@@ -149,13 +149,18 @@ Web制作の2本は撮影1枚ずつで完成するため、第1段階の公開�
 
 ## 8. デザイン方針
 
-参考サイトとして以下4件の提示あり。いずれも実行環境のネットワークポリシーで
-アクセスが遮断されており未確認。スクリーンショット待ち。
+参考サイトの優先順位が確定。いずれも実行環境のネットワークポリシーでアクセスが
+遮断されており未確認のため、スクリーンショット待ち。
 
-- https://www.daijima.jp/
-- https://unshift.jp/works#studiodetails
-- https://www.junkata.com/
-- https://experiments.p5aholic.me/
+| 位置づけ | URL |
+|---|---|
+| **メイン参考** | https://unshift.jp/ （works ページ: https://unshift.jp/works#studiodetails） |
+| **サブ参考** | https://www.daijima.jp/ |
+| 参考（優先度低） | https://www.junkata.com/ |
+| 参考（優先度低） | https://experiments.p5aholic.me/ |
+
+メイン参考が unshift.jp のため、全体のトーンと実績の見せ方はこのサイトを基準に組み立てる。
+daijima.jp は補助的に参照する。
 
 ### 参考サイトを取り込む際の注意
 
