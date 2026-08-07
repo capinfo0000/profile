@@ -114,8 +114,11 @@
      ------------------------------------------------------------ */
   Viewer.prototype._getLo = function (art) {
     if (art._lo) return art._lo;
-    var lw = Math.max(8, Math.round(art.canvas.width / 2));
-    var lh = Math.max(8, Math.round(art.canvas.height / 2));
+    // 1フレームで触る画素数を約6万に抑える。画面が大きいほど粗くなる
+    var full = art.canvas.width * art.canvas.height;
+    var k = Math.max(2, Math.ceil(Math.sqrt(full / 60000)));
+    var lw = Math.max(8, Math.round(art.canvas.width / k));
+    var lh = Math.max(8, Math.round(art.canvas.height / k));
     var c = document.createElement('canvas');
     c.width = lw; c.height = lh;
     var x = c.getContext('2d');

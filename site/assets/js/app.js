@@ -34,6 +34,7 @@
   var patternCanvas = $('patternCanvas');
   if (patternCanvas) {
     pattern = new Pattern(patternCanvas, { seed: 11 });
+    window.__pattern = pattern;   // 動作確認用
     applyTheme();
     pattern.start();
   }
@@ -42,9 +43,11 @@
   var viewer = null;
   var viewerCanvas = $('viewerCanvas');
 
-  function setWorkColor(work) {
+  function setWorkColor(work, gust) {
     document.documentElement.style.setProperty('--work', work.color);
-    if (pattern) pattern.setWorkColor(work.color);
+    if (!pattern) return;
+    pattern.setWorkColor(work.color);
+    if (gust) pattern.gust();   // 背景も一気に流して作品が変わったことを見せる
   }
 
   /* ---- 桁ローラー ---- */
@@ -125,7 +128,7 @@
       works: works,
       onChange: function (i) {
         var work = works[i];
-        setWorkColor(work);
+        setWorkColor(work, true);
         setLabel(work);
         if (numDigits) setDigits(numDigits, i + 1);
       }

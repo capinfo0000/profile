@@ -201,8 +201,10 @@
     this.maxDepth = opts.maxDepth != null ? opts.maxDepth : 3;
     this.splitProb = opts.splitProb || [0.62, 0.55, 0.38];
     this.seed = opts.seed || 1;
-    this.speed = opts.speed != null ? opts.speed : 0.10;  // px / frame
-    this.breath = opts.breath != null ? opts.breath : 0.02;
+    this.speed = opts.speed != null ? opts.speed : 0.40;   // px / frame（斜めに流れる速さ）
+    this.breath = opts.breath != null ? opts.breath : 0.055; // 伸び縮みの幅
+    this.spin = opts.spin != null ? opts.spin : 0.085;     // 回るマスの角速度
+    this.fps = opts.fps || 30;                             // 背景の描き直し回数/秒
 
     this.toneA = parseHex(opts.toneA || '#f9f9f9');   // 明るいほう
     this.toneB = parseHex(opts.toneB || '#ededed');   // 地のほう
@@ -259,19 +261,44 @@
     var bg = flip ? colB : colA;
     var fg = flip ? colA : colB;
 
-    ctx.fillStyle = bg;
-    ctx.fillRect(x - 0.5, y - 0.5, s + 1, s + 1);
+    // 下地はすでに colA で塗ってあるので、違う色のときだけ塗り直す
+    if (flip) {
+      ctx.fillStyle = bg;
+      ctx.fillRect(x - 0.5, y - 0.5, s + 1, s + 1);
+    }
 
     var name = BAG[Math.floor(rng() * BAG.length)];
     if (name === 'blank') return;
 
-    // ゆっくり息をする。位相はマスごとにずらす
-    var phase = rng() * Math.PI * 2;
-    var k = this._reduce ? 1 : 1 + Math.sin(this._t * 0.5 + phase) * this.breath;
-
     ctx.fillStyle = fg;
     ctx.strokeStyle = fg;
-    MOTIFS[name](ctx, x + s / 2, y + s / 2, s * k, rng);
+
+    var cx = x + s / 2, cy = y + s / 2;
+
+    if (this._reduce) {                       // 動きを止める設定のとき
+      MOTIFS[name](ctx, cx, cy, s, rng);
+      return;
+    }
+
+    // 息をする。位相はマスごとにずらす。
+    // さらに画面を斜めに走る波を重ねて、全体がうねって見えるようにする
+    var phase = rng() * Math.PI * 2;
+    var wave = Math.sin(this._t * 0.55 - (x + y) * 0.0032);
+    var k = 1 + Math.sin(this._t * 0.7 + phase) * this.breath + wave * this.breath * 0.9;
+
+    // 3マスに1つくらいはゆっくり回る
+    var spins = rng() < 0.34;
+    var dir = rng() < 0.5 ? 1 : -1;
+
+    if (spins) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(this._t * this.spin * dir + phase);
+      MOTIFS[name](ctx, 0, 0, s * k, rng);
+      ctx.restore();
+    } else {
+      MOTIFS[name](ctx, cx, cy, s * k, rng);
+    }
   };
 
   Pattern.prototype.draw = function () {
@@ -301,12 +328,28 @@
     }
   };
 
+  /* 作品を切り替えた瞬間に一陣の風を吹かせる。
+     模様が一気に流れて入れ替わるので「形も変わった」ように見える。 */
+  Pattern.prototype.gust = function () { this._gust = 1; };
+
+  /* 背景はゆっくり流れるだけなので毎フレーム描く必要がない。
+     30fps に間引いて、主役（作品の描画）にCPUを空けておく。 */
   Pattern.prototype._loop = function () {
     var self = this;
-    this._raf = global.requestAnimationFrame(function () {
-      if (!self._reduce) { self._t += 0.016; self._off += self.speed; }
-      self.draw();
+    this._raf = global.requestAnimationFrame(function (now) {
       self._loop();
+      var last = self._last || 0;
+      var step = 1000 / self.fps;
+      if (now - last < step) return;
+      var dt = last ? Math.min((now - last) / 1000, 0.1) : 1 / self.fps;
+      self._last = now;
+
+      if (!self._reduce) {
+        self._t += dt;
+        self._gust = (self._gust || 0) * Math.pow(0.955, dt * 60);
+        self._off += self.speed * 60 * dt * (1 + self._gust * 22);
+      }
+      self.draw();
     });
   };
 
