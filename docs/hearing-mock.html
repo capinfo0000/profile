@@ -205,12 +205,12 @@
 <div class="wrap">
 
   <div class="notice">
-    <strong>📋 これはヒアリング途中の仮モックです（第5版）</strong>
+    <strong>📋 これはヒアリング途中の仮モックです（第8版）</strong>
     <p>決定事項ではありません。ご回答をもとに更新しています。<span class="q">❓</span> が付いている箇所が、これから決める部分です。</p>
   </div>
 
   <header class="masthead">
-    <p class="eyebrow">仮モック / 第5版</p>
+    <p class="eyebrow">仮モック / 第8版</p>
     <h1>ポートフォリオサイト（取扱説明つき）</h1>
     <p class="sub">engineer.v2008.coreserver.jp / 静的HTML — 要件ヒアリング用たたき台</p>
   </header>
@@ -580,6 +580,206 @@
   </section>
 
   <section>
+    <div class="sec-head"><span class="sec-num">06b</span><h2>デザイン方針（メイン参考：unshift.jp）</h2></div>
+    <p class="lede">いただいたキャプチャとページのソースから、参考サイトの作りを確認しました。<strong>unshift.jp は制作会社ではなく、東京の個人開発者のポートフォリオ</strong>です（トップの一文「私は東京を拠点とするクリエイティブ／フロントエンド開発者です」）。今回と同じカテゴリのサイトなので、参考先として的確です。</p>
+
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>要素</th><th>unshift.jp の作り</th></tr></thead>
+        <tbody>
+          <tr><td class="k">作品の見せ方</td><td class="v"><strong>全画面で1件ずつ</strong>表示（58 / 60）。矢印キー・スクロール・スワイプで送る</td></tr>
+          <tr><td class="k">画面の使い方</td><td class="v">中央に作品画像1枚。<strong>操作UIはすべて四隅に固定</strong>（左上ロゴ／右上ナビ・設定／下中央ページ送り／右下メニュー）</td></tr>
+          <tr><td class="k">背景</td><td class="v"><strong>作品ごとに色と形を変える幾何学パターンが、常に動いている</strong>。ハミダシ＝ピンク＋青紫のダイヤ／野菜＝ベージュ＋ピンクの同心円／Property Agent＝グレーの三角。<strong>作品の配色から背景を生成している</strong></td></tr>
+          <tr><td class="k">連動</td><td class="v">貼り紙ラベルとカーソルの色も作品に連動（Property Agent では両方とも赤）</td></tr>
+          <tr><td class="k">ナビ</td><td class="v">「トップ／作品／について」の3つだけ。大きめの文字に広い字間</td></tr>
+          <tr><td class="k">画像の縁</td><td class="v"><strong>直角の長方形ではなく、縁が破れている</strong>。紙を手でちぎったような輪郭</td></tr>
+          <tr><td class="k">タイトル</td><td class="v">左下に<strong>貼り紙風の黒いラベル</strong>。文字が少しズレて二重に刷られたような効果つき</td></tr>
+          <tr><td class="k">カーソル</td><td class="v">四角形と「詳細はこちら」がマウスに追従。<strong>作品の明暗に応じて黒⇄白に反転する</strong></td></tr>
+          <tr><td class="k">設定パネル</td><td class="v"><strong>来訪者が選べる</strong>：表示モード（満杯／単純／最小）、メニュー位置（右下／左下／右上）、ライト／ダークモード</td></tr>
+          <tr><td class="k">切り替え演出</td><td class="v">画像が砕けて次に変わる。Nuxt.js＋canvas（WebGL）による生成描画</td></tr>
+          <tr><td class="k">技術</td><td class="v">詳細ページのタグ欄に本人が明記：<strong>GLSL / three.js / WebGL / クリエイティブコーディング</strong>。動きの正体はシェーダー</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="decided" style="margin-top:22px; border-color:var(--ok-line);">
+      <p>★ 動画から判明した最重要点</p>
+      <ul>
+        <li><b>配色の生成</b><span><strong>ページ全体の色が、作品1つの色から作られている。</strong>水曜日のカンパネラ（紫）では背景パターン・タイトルラベル・タグの丸ボタン・「閉鎖されています」枠まですべて紫。Property Agent（赤）ではラベルもカーソルも赤</span></li>
+        <li><b>実現性</b><span><strong>静的HTMLで完全に同じことができる。</strong>一覧データに色を1つ持たせ、CSS変数に流すだけ。JavaScriptもシェーダーも不要</span></li>
+        <li><b>評価</b><span>unshift.jp が凝って見える理由のかなりの部分がこの仕組み。<strong>今回いちばん費用対効果が高い採用候補</strong></span></li>
+      </ul>
+    </div>
+
+    <div class="warn" style="margin-top:22px; border-left-color:var(--flag); background:var(--flag-bg);">
+      <b style="color:var(--flag);">「動いている」部分の正体はシェーダーです</b>
+      背景の幾何学パターンが常時アニメーションし、しかも作品ごとに色と形が変わります。これは <strong>GLSL（シェーダー言語）で1フレームずつ描画</strong>しているもので、静的HTMLで同じものは作れません。unshift.jp 本人がタグに GLSL / three.js / WebGL と書いています。<br>
+      <strong>ただし、寄せる方法はあります</strong>（次表）。「同じもの」は無理でも「同じ方向」には行けます。
+    </div>
+
+    <div class="tbl-scroll" style="margin-top:18px;">
+      <table>
+        <thead><tr><th>やりたいこと</th><th>静的HTMLでの手段</th><th>差</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="k">背景に幾何学パターン</td>
+            <td class="v">SVGのパターンを敷く。ファイル1つで済む</td>
+            <td class="v">差はほぼない</td>
+          </tr>
+          <tr>
+            <td class="k">パターンがゆっくり動く</td>
+            <td class="v">CSSアニメーションで平行移動・回転させる</td>
+            <td class="v">単調な繰り返しになる。シェーダーのような有機的な揺らぎは出ない</td>
+          </tr>
+          <tr>
+            <td class="k">プロダクトごとに色が変わる</td>
+            <td class="v">一覧データに色を1つ持たせ、CSS変数に流す</td>
+            <td class="v"><strong>差はない。むしろ管理しやすい</strong></td>
+          </tr>
+          <tr>
+            <td class="k">ラベル・カーソルも色が連動</td>
+            <td class="v">同じCSS変数を参照させるだけ</td>
+            <td class="v">差はない</td>
+          </tr>
+          <tr>
+            <td class="k">画像が砕けて切り替わる</td>
+            <td class="v">—</td>
+            <td class="v"><strong>再現不可</strong>。WebGLが要る</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="lede" style="margin-top:18px;">切り替え演出をコマ送りで分解すると、こうでした。<strong>グリッチ系のシェーダー</strong>です。</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>順</th><th>起きていること</th></tr></thead>
+        <tbody>
+          <tr><td class="k">1</td><td class="v">画像が<strong>上下2枚に割れて飛び去る</strong></td></tr>
+          <tr><td class="k">2</td><td class="v">それぞれが<strong>横方向の短冊に千切れる</strong></td></tr>
+          <tr><td class="k">3</td><td class="v"><strong>RGBがズレる</strong>（マゼンタ・シアン・緑の縁が出る）</td></tr>
+          <tr><td class="k">4</td><td class="v">次の作品名が中央にフェードイン。同時に背景パターンの色も次の作品の色へ変わる</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="lede" style="margin-top:14px;">
+      つまり<strong>「作品ごとに背景と装飾の色が変わる」ところまでは差がなく</strong>、動きの質感だけが落ちます。ここが今回の落としどころだと考えます。
+    </p>
+
+    <div class="warn" style="margin-top:22px;">
+      <b>そのままの構成は今回に合いません</b>
+      unshift.jp の作品は「水曜日のカンパネラ 公式サイト」のような、<strong>画像1枚で成立する制作物</strong>です。全画面1件ずつのビューアは、作品が視覚的に強いからこそ機能します。<br>
+      今回のサービス開発6本は<strong>ログインが必要な業務アプリ</strong>で、画面の中身は入力欄と一覧表です。全画面に引き伸ばしても絵として持たず、クリックしてもログイン画面に着きます。<strong>構成は借りず、見た目の作法だけを借りる</strong>のが正解です。
+    </div>
+
+    <p class="lede" style="margin-top:22px;">では何を採るか。<span class="q">❓</span> が付いているものは、ご判断をいただきたい項目です。</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>参考サイトの要素</th><th>今回</th><th>理由</th></tr></thead>
+        <tbody>
+          <tr><td class="k">配色（ほぼ白＋作品だけが色を持つ）</td><td><span class="pill fix">採る</span></td><td class="v">画面写真が主役の今回と相性が良い。静的HTMLで問題なく実現できる</td></tr>
+          <tr><td class="k">四隅にUIを固定するレイアウト</td><td><span class="pill fix">採る</span></td><td class="v">中央を写真に明け渡せる。CSSだけで実現できる</td></tr>
+          <tr><td class="k">ナビは3つだけ・広い字間</td><td><span class="pill fix">採る</span></td><td class="v">今回も Works / About / Contact の3つ。そのまま合う</td></tr>
+          <tr><td class="k">ライト／ダークモード切り替え</td><td><span class="pill fix">採る</span></td><td class="v">確定済みのスマホ対応と同じ仕組みで入る。追加負担が小さい</td></tr>
+          <tr><td class="k">うっすらした幾何パターンの背景</td><td><span class="pill fix">採る</span></td><td class="v">白一色より締まる。画像1枚で済む</td></tr>
+          <tr><td class="k"><strong>画像の破れた縁</strong></td><td><span class="pill ask">要確認</span></td><td class="v"><strong>静的HTMLで実現できます。</strong>マスク画像を1枚用意すれば、全部の写真に同じ縁が付く。JavaScriptは不要</td></tr>
+          <tr><td class="k"><strong>貼り紙風のタイトルラベル</strong></td><td><span class="pill ask">要確認</span></td><td class="v"><strong>CSSだけで実現できます。</strong>二重にズレた効果も含めて。画像も不要</td></tr>
+          <tr><td class="k">カーソルの明暗反転</td><td><span class="pill ask">要確認</span></td><td class="v">実現可。一覧データに「この写真は明るい／暗い」を1項目持たせるだけで足りる</td></tr>
+          <tr><td class="k">スクロールで要素がふわっと出る</td><td><span class="pill ask">要確認</span></td><td class="v">静的HTMLのまま実現可。ただし入れるほどスマホでの表示が重くなる</td></tr>
+          <tr><td class="k">カーソル追従の「詳細はこちら」</td><td><span class="pill ask">要確認</span></td><td class="v">実現可。ただしスマホでは表示されないため、PC限定の装飾になる</td></tr>
+          <tr><td class="k">数字がめくれるページ送り表示</td><td><span class="pill ask">要確認</span></td><td class="v">今回は一覧形式のため、そもそも出番がないかもしれない</td></tr>
+          <tr><td class="k">来訪者が選べる設定パネル</td><td><span class="pill ask">要確認</span></td><td class="v">表示モード3種を作り分ける必要があり、実質サイトを3つ作るのに近い。<strong>ライト／ダークだけに絞る</strong>ことを推奨</td></tr>
+          <tr><td class="k">全画面1件ずつのビューア</td><td><span class="pill" style="color:var(--no); background:var(--no-bg);">採らない</span></td><td class="v">ログイン必須の業務画面には不向き（上記）</td></tr>
+          <tr><td class="k">画像が砕ける切り替え演出</td><td><span class="pill" style="color:var(--no); background:var(--no-bg);">採らない</span></td><td class="v">canvas（WebGL）による生成描画。静的HTMLの方針と、写真を軽くする方針の両方に反する</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="lede" style="margin-top:20px;">
+      要点は<strong>「構成ではなく、静けさを借りる」</strong>ことです。unshift.jp が良く見えるのは、余白が広く、色を作品にしか使わず、操作UIを画面の端に追いやっているからです。この3つは今回そのまま効きます。むしろ業務画面のスクリーンショットは地味なので、<strong>周りが静かなほど写真が引き立ちます</strong>。
+    </p>
+    <p class="lede" style="margin-top:16px;">
+      そして<strong>WebGLが必要なのは「切り替わる瞬間」だけ</strong>でした。止まっている状態の破れた縁と貼り紙ラベルは、マスク画像1枚とCSSで作れます。<strong>署名になっている見た目は、静的HTMLのまま採用できます。</strong>
+    </p>
+
+    <div class="warn" style="margin-top:22px; border-left-color:var(--flag); background:var(--flag-bg);">
+      <b style="color:var(--flag);">ただし、方向性として合うかは別問題です</b>
+      破れた縁と貼り紙ラベルは、<strong>手作りっぽさ・勢いのある見た目</strong>です。unshift.jp は色鮮やかな広告・音楽系の制作物が並ぶので、この荒さが似合います。<br>
+      今回のサイトは、採用担当や取引先に<strong>「業務システムを任せられる人」</strong>として見られる場でもあります。破れた縁は目を引きますが、堅さや信頼感とは逆方向に働きます。<strong>好みの問題ではなく、誰に何と思われたいかの問題</strong>なので、ここは決めていただきたい項目です。
+    </div>
+
+    <ul class="ask-list" style="margin-top:20px;">
+      <li>
+        <h4>破れた縁・貼り紙ラベルを採用しますか</h4>
+        <p>参考サイトの署名になっている見た目です。静的HTMLのまま実現できますが、印象が「作家寄り」に振れます。</p>
+        <div class="choices"><span>A. 採用する（印象重視）</span><span>B. 直角のまま静かに（信頼感重視）</span><span>C. 受託制作の2本だけ採用</span></div>
+      </li>
+      <li>
+        <h4>背景の幾何学パターンをどこまでやりますか</h4>
+        <p>参考サイトはシェーダーで常時アニメーションしています。静的HTMLでは同じにできませんが、段階的に寄せられます。</p>
+        <div class="choices"><span>A. 動かさない（模様のみ）</span><span>B. ゆっくり動かす</span><span>C. プロダクトごとに色を変えて動かす</span></div>
+      </li>
+    </ul>
+
+    <div class="sec-head" style="margin-top:40px;"><span class="sec-num">◆</span><h2 style="font-size:20px;">詳細ページの構成が、今回の悩みをそのまま解決します</h2></div>
+    <p class="lede">unshift.jp の作品詳細ページは、左に情報・右に大きな画像という2カラムでした。左カラムの中身がそのまま今回に使えます。</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>unshift.jp の左カラム</th><th>今回への置き換え</th></tr></thead>
+        <tbody>
+          <tr><td class="k">← 戻る</td><td class="v">一覧に戻る（同じ）</td></tr>
+          <tr><td class="k">タイトル（塗りラベル）＋日本語サブタイトル</td><td class="v">プロダクト名＋1行説明（同じ）</td></tr>
+          <tr><td class="k">カテゴリ：Webサイト</td><td class="v">区分：サービス開発 / Web制作</td></tr>
+          <tr><td class="k">役割：フロントエンド</td><td class="v">役割：企画・開発・運用 など</td></tr>
+          <tr><td class="k">タグ：GLSL / three.js / HTML/CSS …</td><td class="v">使用技術：Python / 〇〇（<strong>この形式がそのまま使える</strong>）</td></tr>
+          <tr>
+            <td class="k"><strong>「このサイトは既に閉鎖されています。」</strong><br><span style="font-size:12.5px; color:var(--ink-3);">灰色の枠。押せないボタンの位置に置かれている</span></td>
+            <td class="v"><strong>「このサービスの利用にはログインが必要です」</strong><br>まさに今回の枠</td>
+          </tr>
+          <tr><td class="k">「サイトにアクセス ⧉」（生きている場合）</td><td class="v">誰でも使える3本はこちら。飲みゲーム／crafy／revenge.co.jp</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="lede" style="margin-top:16px;">
+      <strong>unshift.jp も「リンクは出すが、来訪者は中に入れない」という同じ問題を抱えていました。</strong>閉鎖済みのサイトが並んでいるからです。その解決が、ボタンの位置に灰色の注意書きを置くという形でした。<br>
+      今回の「ログインが必要」もまったく同じ構造なので、この枠をそのまま借りられます。前回モックに入れた <span class="q">❓</span>「注意書きの文言」は、この形で確定にできます。
+    </p>
+
+    <div class="sec-head" style="margin-top:40px;"><span class="sec-num">◆</span><h2 style="font-size:20px;">サブ参考：daijima.jp</h2></div>
+    <p class="lede">unshift.jp とはまったく別物でした。<strong>真っ黒な画面に、3Dスキャンした本人の頭部</strong>が置かれ、粒子の雲 → ワイヤーフレーム → 実体、と変形し続けます。音つき。1画面で完結し、スクロールはありません。肩書きは Technical Director / Interaction Designer。</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>要素</th><th>daijima.jp の作り</th><th>今回</th></tr></thead>
+        <tbody>
+          <tr><td class="k">背景</td><td class="v">真っ黒一色。模様なし</td><td><span class="pill ask">要確認</span></td></tr>
+          <tr><td class="k">ロゴ</td><td class="v">マークなし。<strong>氏名をそのまま組んだだけ</strong>（MASAYUKI DAIJIMA）</td><td><span class="pill fix">採れる</span></td></tr>
+          <tr><td class="k">ナビ</td><td class="v">名前のすぐ下に <code>ABOUT / BLOG / CONTACT</code> の3語だけ。極小</td><td><span class="pill fix">採れる</span></td></tr>
+          <tr><td class="k">SNS</td><td class="v">右上にアイコンを6つ横一列</td><td><span class="pill ask">要確認</span></td></tr>
+          <tr><td class="k">中央</td><td class="v">3Dスキャンの頭部（three.js）が常時変形</td><td><span class="pill" style="color:var(--no); background:var(--no-bg);">採れない</span></td></tr>
+          <tr><td class="k">音</td><td class="v">BGMつき。右下に「Sound by ◯◯」とスピーカーアイコン</td><td><span class="pill" style="color:var(--no); background:var(--no-bg);">採らない</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="lede" style="margin-top:16px;">
+      こちらも three.js の作品そのもので、構成は借りられません。採れるのは<strong>「極端な引き算」の作法</strong>だけです。ロゴを作らず氏名をそのまま組む、ナビは3語、要素をこれ以上ないほど減らす。<br>
+      なお daijima.jp は<strong>作品を1つも並べていません</strong>。サイト自体が作品だからです。今回は7本＋2本を見せることが目的なので、この構成は取れません。
+    </p>
+
+    <ul class="ask-list" style="margin-top:20px;">
+      <li>
+        <h4>★ 作品ごとに色を変える仕組みを採用しますか（最優先）</h4>
+        <p>プロダクト1つにつき色を1つ決め、そのページの背景・ラベル・タグ・ボタンをすべてその色にします。参考サイトが凝って見える理由の大半がこれで、<strong>静的HTMLで完全に同じことができます</strong>。データに1行足すだけです。</p>
+        <div class="choices"><span>A. 採用する（強く推奨）</span><span>B. 全ページ同じ配色でよい</span></div>
+      </li>
+      <li>
+        <h4>全体の明るさはどちらですか</h4>
+        <p>unshift.jp は白基調、daijima.jp は真っ黒です。どちらの印象に寄せますか。ライト／ダーク切り替えは入れる前提なので、これは「初期値をどちらにするか」の話です。</p>
+        <div class="choices"><span>A. 白基調（unshift 寄り）</span><span>B. 黒基調（daijima 寄り）</span></div>
+      </li>
+    </ul>
+  </section>
+
+  <section>
     <div class="sec-head"><span class="sec-num">07</span><h2>次に確認したいこと</h2></div>
     <p class="lede">迷うものは「どちらでもよい」で構いません。保留として記録し、後で決められます。</p>
     <ul class="ask-list">
@@ -657,7 +857,7 @@
   </section>
 
   <footer>
-    ヒアリング用仮モック 第5版 — 回答内容にあわせて本モックを更新し、最終的に要件定義書（Word）として出力します。
+    ヒアリング用仮モック 第8版 — 回答内容にあわせて本モックを更新し、最終的に要件定義書（Word）として出力します。
   </footer>
 
 </div>
