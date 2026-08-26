@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>について / ポートフォリオ</title>
+<meta name="description" content="自己紹介、経歴、使える技術。">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+  /* このページだけスクロールする */
+  body{overflow:auto;}
+  .stage{position:fixed;}
+  .about{position:relative;z-index:2;max-width:720px;margin:0 auto;padding:170px 24px 120px;}
+  .about h2{font-family:var(--font-mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-2);margin:44px 0 14px;}
+  .about h2:first-child{margin-top:0;}
+  .about p{font-size:14px;line-height:2;color:var(--ink);}
+  .about dl{display:grid;grid-template-columns:7em 1fr;gap:0;border-top:1px solid var(--line);font-size:13.5px;}
+  .about dt{padding:12px 0;color:var(--ink-3);font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;border-bottom:1px solid var(--line);}
+  .about dd{padding:12px 0;margin:0;border-bottom:1px solid var(--line);line-height:1.9;}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
+  <symbol id="iGear" viewBox="0 0 24 24"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm9.4 4a7.5 7.5 0 01-.1 1.2l2 1.6-2 3.4-2.4-1a7.6 7.6 0 01-2 1.2l-.4 2.6h-4l-.4-2.6a7.6 7.6 0 01-2-1.2l-2.4 1-2-3.4 2-1.6A7.5 7.5 0 012.6 12c0-.4 0-.8.1-1.2l-2-1.6 2-3.4 2.4 1a7.6 7.6 0 012-1.2l.4-2.6h4l.4 2.6c.7.3 1.4.7 2 1.2l2.4-1 2 3.4-2 1.6c.1.4.1.8.1 1.2z"/></symbol>
+</defs></svg>
+
+<div class="stage"><canvas id="patternCanvas"></canvas></div>
+
+<main class="about">
+  <h2>About</h2>
+  <p>
+    東京でWebとアプリケーションをつくっています。<br>
+    企画から開発・運用まで一人で回すことが多く、いまはサービスを7本と受託のWeb制作を運用中です。
+  </p>
+
+  <h2>Profile</h2>
+  <dl>
+    <dt>拠点</dt><dd>東京</dd>
+    <dt>役割</dt><dd>企画・開発・運用</dd>
+    <dt>連絡</dt><dd>お問い合わせフォームより（準備中）</dd>
+  </dl>
+
+  <h2>Skills</h2>
+  <dl>
+    <dt>言語</dt><dd>PHP / Python / JavaScript / HTML / CSS</dd>
+    <dt>データ</dt><dd>MySQL / ベクトル検索</dd>
+    <dt>基盤</dt><dd>コアサーバー（Apache）/ 独自ドメイン運用</dd>
+  </dl>
+
+  <p style="margin-top:44px;font-size:12px;color:var(--ink-3);">
+    ※ このページの内容は仮置きです。要件定義の確定後に差し替えます。
+  </p>
+</main>
+
+<div class="chrome" style="position:fixed;">
+  <a class="logo" href="index.html"><span class="logo__mark"></span><span>about</span></a>
+  <nav class="nav">
+    <a class="nav__link" href="index.html">トップ</a>
+    <a class="nav__link" href="works.html">作品</a>
+    <a class="nav__link is-current" href="about.html">について</a>
+    <button class="btnSquare" type="button" id="openSettings" aria-label="設定">
+      <svg aria-hidden="true"><use href="#iGear"/></svg><span>設定</span>
+    </button>
+  </nav>
+</div>
+
+<div class="settings" id="settings">
+  <div class="settings__veil" data-close-settings></div>
+  <div class="settings__box" role="dialog" aria-modal="true" aria-label="設定">
+    <div class="settings__head">
+      <h2 class="settings__title">Settings</h2>
+      <button class="settings__close" type="button" data-close-settings aria-label="閉じる"></button>
+    </div>
+    <div class="settings__body">
+      <div class="field">
+        <p class="field__name">Color scheme</p>
+        <div class="seg" data-key="theme">
+          <span class="seg__mark"></span>
+          <button class="seg__item" type="button" data-value="auto"><span class="seg__label">Auto</span></button>
+          <button class="seg__item" type="button" data-value="light"><span class="seg__label">Light</span></button>
+          <button class="seg__item" type="button" data-value="dark"><span class="seg__label">Dark</span></button>
+        </div>
+      </div>
+      <div class="field">
+        <p class="field__name">Motion</p>
+        <div class="seg" data-key="motion">
+          <span class="seg__mark"></span>
+          <button class="seg__item" type="button" data-value="on"><span class="seg__label">On</span></button>
+          <button class="seg__item" type="button" data-value="off"><span class="seg__label">Off</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/pattern.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

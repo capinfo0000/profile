@@ -1,0 +1,1376 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>構造モック（unshift.jp 参考） / ポートフォリオサイト</title>
+<style>
+/* ============================================================
+   構造モック
+   参考サイト unshift.jp の「画面構成・状態遷移・操作感」を
+   自前の実装で組み直したもの。
+   - 文字・アイコンのベクターデータは参考サイトから取得せず、
+     すべてこのファイル内で新規に作図している
+   - 配色・書体・文言はここから差し替えていく前提の仮置き
+   - 単一HTML。外部リソースなし
+   ============================================================ */
+
+/* ---- 差し替え用トークン ------------------------------------ */
+:root{
+  --c-bg:        #ffffff;
+  --c-ink:       #0a0a0a;
+  --c-ink-2:     rgba(10,10,10,.55);
+  --c-ink-3:     rgba(10,10,10,.28);
+  --c-line:      rgba(10,10,10,.14);
+  --c-panel:     #ffffff;
+  --c-veil:      rgba(255,255,255,.86);
+  --c-visual:    #0a0a0a;
+  --pointer:     #0a0a0a;
+
+  --font-en: "Helvetica Neue", Arial, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  --font-jp: "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", Meiryo, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --u: 8px;                 /* 余白の基本単位 */
+  --edge: 24px;             /* 画面端の余白 */
+  --btn: 56px;              /* 角ボタンの一辺 */
+  --dur: .6s;
+  --ease: cubic-bezier(.22,.61,.36,1);
+
+  --z-bg:0; --z-visual:1; --z-works:2; --z-contents:3;
+  --z-chrome:10; --z-pointer:20; --z-panel:30; --z-chromeTop:35; --z-modal:40;
+}
+.root.is-darkMode{
+  --c-bg:        #0a0a0a;
+  --c-ink:       #f2f2f2;
+  --c-ink-2:     rgba(242,242,242,.55);
+  --c-ink-3:     rgba(242,242,242,.28);
+  --c-line:      rgba(242,242,242,.16);
+  --c-panel:     #131313;
+  --c-veil:      rgba(10,10,10,.86);
+  --c-visual:    #f2f2f2;
+  --pointer:     #f2f2f2;
+}
+
+/* ---- リセット ---------------------------------------------- */
+*,*::before,*::after{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  background:var(--c-bg); color:var(--c-ink);
+  font-family:var(--font-jp);
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+button{
+  margin:0; padding:0; border:0; background:none; color:inherit;
+  font:inherit; cursor:pointer; -webkit-appearance:none; appearance:none;
+}
+h1,h2,h3,p{margin:0;font-weight:400;}
+svg{display:block;}
+[hidden]{display:none !important;}
+:focus-visible{outline:2px solid var(--c-ink); outline-offset:3px;}
+
+/* ---- ルート -------------------------------------------------- */
+#__nuxt,#__layout{height:100%;}
+.root{
+  position:relative; width:100%; height:100%;
+  background:var(--c-bg); color:var(--c-ink);
+  transition:background-color .5s var(--ease), color .5s var(--ease);
+}
+.root > svg.spriteDefs{position:absolute;width:0;height:0;overflow:hidden;}
+.wrapper{position:relative;width:100%;height:100%;overflow:hidden;}
+
+/* ---- 背景テクスチャ ------------------------------------------ */
+.patternBg{
+  position:absolute; inset:0; z-index:var(--z-bg);
+  opacity:0; transition:opacity 1.2s var(--ease);
+  pointer-events:none;
+}
+.patternBg.is-shown{opacity:1;}
+.patternBg.is-invisible{opacity:0;}
+.patternBg .bg{
+  position:absolute; inset:0;
+  background-image:var(--grain);
+  background-size:180px 180px;
+  opacity:.5; mix-blend-mode:multiply;
+}
+.root.is-darkMode .patternBg .bg{mix-blend-mode:screen; opacity:.35;}
+.root.is-displayModeMinimum .patternBg{opacity:0;}
+
+/* ---- メインビジュアル ---------------------------------------- */
+.mainVisual{
+  position:absolute; top:50%; left:50%; z-index:var(--z-visual);
+  transform:translate(-50%,-50%);
+  width:min(384px, 62vw); height:min(470px, 58vh);
+  opacity:0; transition:opacity 1.2s var(--ease), transform 1.2s var(--ease);
+}
+.mainVisual.is-shown{opacity:1;}
+.mainVisual canvas{width:100%;height:100%;display:block;}
+/* 合成モード。文字と重なっても読める側に倒す（対応しない環境では通常合成） */
+.root.is-blendMode .mainVisual{mix-blend-mode:multiply;}
+.root.is-blendMode.is-darkMode .mainVisual{mix-blend-mode:screen;}
+.root.is-displayModeMinimum .mainVisual{opacity:0; pointer-events:none;}
+.root.is-displayModeFull .mainVisual{transform:translate(-50%,-50%) scale(1.04);}
+
+/* ---- ロゴ ---------------------------------------------------- */
+.logo{
+  position:absolute; top:var(--edge); left:var(--edge); z-index:var(--z-chromeTop);
+  line-height:0;
+}
+.logo_inner{display:block; text-decoration:none; color:inherit;}
+.logo .label{
+  position:absolute; width:1px; height:1px; overflow:hidden;
+  clip-path:inset(50%); white-space:nowrap;
+}
+.logo .chars{display:flex; align-items:flex-end; gap:3px;}
+.logo .char{
+  position:relative; display:block;
+  width:16px; height:16px;
+  opacity:0; transform:translateY(10px);
+  transition:opacity .5s var(--ease), transform .5s var(--ease);
+}
+.logo.is-shown .char{opacity:1; transform:none;}
+.logo .char--square{width:16px;}
+.logo .char__inner{display:block;width:100%;height:100%;}
+.logo .char__inner svg{width:100%;height:100%;fill:currentColor;}
+.logo .char__underline{
+  position:absolute; left:0; bottom:-5px; width:100%; height:1px;
+  background:currentColor; transform:scaleX(0); transform-origin:0 50%;
+  transition:transform .4s var(--ease);
+}
+.logo_inner:hover .char__underline{transform:scaleX(1);}
+.logo .char:nth-child(1){transition-delay:.05s}
+.logo .char:nth-child(2){transition-delay:.11s}
+.logo .char:nth-child(3){transition-delay:.17s}
+.logo .char:nth-child(4){transition-delay:.23s}
+.logo .char:nth-child(5){transition-delay:.29s}
+.logo .char:nth-child(6){transition-delay:.35s}
+.logo .char:nth-child(7){transition-delay:.41s}
+.logo .char:nth-child(8){transition-delay:.47s}
+.logo_inner:hover .char__underline{transition-delay:0s;}
+
+/* ---- 中央コンテンツ ------------------------------------------ */
+.contents{
+  position:absolute; inset:0; z-index:var(--z-contents);
+  display:flex; align-items:center; justify-content:center;
+  pointer-events:none;
+}
+.contentsRoot{
+  text-align:center; padding:0 var(--edge);
+  pointer-events:auto;
+  opacity:0; transform:translateY(12px);
+  transition:opacity .9s var(--ease), transform .9s var(--ease);
+}
+.root.is-rootLoaded .contentsRoot{opacity:1; transform:none;}
+.root.is-displayModeFull .contents{opacity:0; pointer-events:none;}
+.lead{
+  font-family:var(--font-en);
+  font-size:clamp(15px, 2.4vw, 20px); line-height:1.9; letter-spacing:.02em;
+  margin-bottom:calc(var(--u) * 5);
+  text-wrap:balance;
+}
+.lead .lead__jp{
+  display:block; margin-top:10px;
+  font-family:var(--font-jp); font-size:.72em; color:var(--c-ink-2);
+}
+.buttonWorks{
+  position:relative; display:inline-block;
+  padding:14px 30px; border:1px solid var(--c-ink);
+  font-family:var(--font-en); font-size:12px; letter-spacing:.16em; text-transform:uppercase;
+  overflow:hidden; opacity:0; transition:opacity .5s var(--ease) .3s;
+}
+.buttonWorks.is-loaded{opacity:1;}
+.buttonWorks::before{
+  content:""; position:absolute; inset:0; background:var(--c-ink);
+  transform:scaleX(0); transform-origin:0 50%; transition:transform .45s var(--ease);
+}
+.buttonWorks span{position:relative;}
+.buttonWorks:hover::before{transform:scaleX(1);}
+.buttonWorks:hover span{color:var(--c-bg);}
+.buttonWorks span{transition:color .45s var(--ease);}
+
+/* ---- Works（フルモード） ------------------------------------- */
+.worksListFullMode{
+  position:absolute; inset:0; z-index:var(--z-works);
+  display:none;
+}
+.root.is-displayModeFull .worksListFullMode{display:block;}
+.worksListFullMode__clickableArea{
+  position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  display:block; cursor:none;
+}
+.worksListFullMode__clickableAreaTxt{
+  position:absolute; top:-34px; left:0;
+  font-family:var(--font-mono); font-size:10px; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--c-ink-3);
+}
+.worksItem__titles{
+  position:absolute; left:0; top:100%; padding-top:18px;
+  width:100%; min-width:min(520px, 82vw);
+  text-align:left;
+}
+.worksItem__title{
+  font-family:var(--font-en); font-size:clamp(17px,2.4vw,26px);
+  letter-spacing:.01em; line-height:1.35; overflow:hidden;
+}
+.worksItem__titleInner{
+  display:block;
+  transition:transform .5s var(--ease), opacity .5s var(--ease);
+}
+.worksItem__titleInner.is-out{transform:translateY(100%); opacity:0;}
+.worksItem__meta{
+  display:block; margin-top:6px;
+  font-family:var(--font-mono); font-size:10px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--c-ink-2);
+}
+
+.worksListFullModeHowToMove{
+  position:absolute; left:var(--edge); bottom:var(--edge);
+  display:flex; flex-direction:column; gap:14px;
+}
+.root.is-menuBottomLeft .worksListFullModeHowToMove{bottom:calc(var(--edge) + var(--btn) + var(--u)*2);}
+.worksListFullModeHowToMoveItem{
+  display:flex; align-items:center; gap:10px;
+  font-family:var(--font-mono); font-size:10px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--c-ink-2);
+}
+.worksListFullModeHowToMoveItem svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:4;}
+.worksListFullModeHowToMoveItem small{display:block;color:var(--c-ink-3);letter-spacing:.1em;}
+@media (hover:none){ .worksListFullModeHowToMoveItem--arrowKey,
+                     .worksListFullModeHowToMoveItem--scroll{display:none;} }
+@media (hover:hover){ .worksListFullModeHowToMoveItem--swipe{display:none;} }
+
+.worksListFullModeIndicator{
+  position:absolute; right:var(--edge); bottom:var(--edge);
+  display:flex; align-items:center; gap:12px;
+  font-family:var(--font-mono);
+}
+.root.is-menuBottomRight .worksListFullModeIndicator{bottom:calc(var(--edge) + var(--btn) + var(--u)*2);}
+.worksListFullModeIndicator__prev,
+.worksListFullModeIndicator__next{
+  width:24px;height:24px; display:grid;place-items:center;
+  color:var(--c-ink-2); transition:color .3s var(--ease);
+}
+.worksListFullModeIndicator__prev:hover,
+.worksListFullModeIndicator__next:hover{color:var(--c-ink);}
+.worksListFullModeIndicator__prev svg,
+.worksListFullModeIndicator__next svg{width:12px;height:12px;stroke:currentColor;stroke-width:8;fill:none;}
+.worksListFullModeIndicator__prev svg{transform:rotate(180deg);}
+.worksListFullModeIndicator__current,
+.worksListFullModeIndicator__total{display:flex; font-size:13px; letter-spacing:.06em;}
+.worksListFullModeIndicator__total{color:var(--c-ink-3);}
+.worksListFullModeIndicator__sep{color:var(--c-ink-3); font-size:13px;}
+.worksListFullModeIndicator__digit10,
+.worksListFullModeIndicator__digit01{
+  height:1em; line-height:1; overflow:hidden;
+}
+.worksListFullModeIndicator__digit10Inner,
+.worksListFullModeIndicator__digit01Inner{
+  display:block;
+  transform:translateY(calc(var(--i,1) * -1em));
+  transition:transform .45s var(--ease);
+}
+.worksListFullModeIndicator__digit{display:block;height:1em;line-height:1;}
+
+/* ---- ポインタ追従 -------------------------------------------- */
+.pointerNotice{
+  position:fixed; top:0; left:0; z-index:var(--z-pointer);
+  display:flex; align-items:center; gap:9px;
+  opacity:0; transition:opacity .3s var(--ease);
+  pointer-events:none; will-change:transform;
+}
+.pointerNotice__square{display:block;width:11px;height:11px;}
+.pointerNotice__square svg{width:100%;height:100%;}
+.pointerNotice__label{
+  font-family:var(--font-mono); font-size:10px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--pointer); white-space:nowrap;
+}
+@media (hover:none){ .pointerNotice{display:none;} }
+
+/* ---- 角ボタン ------------------------------------------------ */
+.buttonContainer{
+  position:absolute; z-index:var(--z-chromeTop);
+  display:flex; align-items:flex-end; gap:var(--u);
+}
+.buttonContainer--bottomRight{right:var(--edge); bottom:var(--edge); flex-direction:row;}
+.buttonContainer--bottomLeft{left:var(--edge); bottom:var(--edge); flex-direction:row-reverse;}
+.buttonContainer--topRight{right:var(--edge); top:var(--edge); flex-direction:row; align-items:flex-start;}
+
+.buttonSquare{
+  position:relative; width:var(--btn); height:var(--btn);
+  border:1px solid var(--c-line); background:var(--c-panel);
+  display:grid; place-items:center;
+  transition:border-color .3s var(--ease), background-color .3s var(--ease);
+}
+.buttonSquare:hover{border-color:var(--c-ink);}
+.buttonSquare__label{
+  position:absolute; left:50%; bottom:6px; transform:translateX(-50%);
+  font-family:var(--font-mono); font-size:8px; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--c-ink-2); white-space:nowrap;
+}
+.buttonScrollTop{opacity:0; pointer-events:none; transition:opacity .3s var(--ease);}
+.root.is-scrolled .buttonScrollTop{opacity:1; pointer-events:auto;}
+.buttonScrollTop__arrow{
+  display:block; width:11px; height:11px; margin-bottom:6px;
+  border-left:1px solid currentColor; border-top:1px solid currentColor;
+  transform:rotate(45deg);
+}
+.buttonMenu__line{
+  position:absolute; left:50%; width:18px; height:1px; background:currentColor;
+  transform:translateX(-50%);
+  transition:transform .35s var(--ease), opacity .2s var(--ease);
+}
+.buttonMenu__line:nth-child(1){top:20px;}
+.buttonMenu__line:nth-child(2){top:26px;}
+.buttonMenu__line:nth-child(3){top:32px;}
+.root.is-menuOpened .buttonMenu__line:nth-child(1){transform:translateX(-50%) translateY(6px) rotate(45deg);}
+.root.is-menuOpened .buttonMenu__line:nth-child(2){opacity:0;}
+.root.is-menuOpened .buttonMenu__line:nth-child(3){transform:translateX(-50%) translateY(-6px) rotate(-45deg);}
+.buttonSquare__label--opened{opacity:0;}
+.root.is-menuOpened .buttonSquare__label--closed{opacity:0;}
+.root.is-menuOpened .buttonSquare__label--opened{opacity:1;}
+.buttonSquare__label--closed,.buttonSquare__label--opened{transition:opacity .25s var(--ease);}
+
+.buttonRect{
+  display:inline-block; border:1px solid var(--c-line); background:var(--c-panel);
+  height:var(--btn); padding:0 22px;
+  transition:border-color .3s var(--ease);
+}
+.buttonRect:hover{border-color:var(--c-ink);}
+.buttonRect .inner{display:flex;align-items:center;height:100%;}
+.buttonRect__label{
+  font-family:var(--font-mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+}
+.buttonBackWrapper{display:none;}
+.buttonBackWrapper.is-shown{display:block;}
+/* ロゴの真下に置く。ロゴと同じ左端から始める */
+.buttonBackWrapper.is-onTopLeft{
+  position:absolute; top:calc(var(--edge) + 38px); left:var(--edge); z-index:var(--z-chrome);
+}
+
+/* ---- メニュー ------------------------------------------------ */
+.menu{
+  position:absolute; inset:0; z-index:var(--z-panel);
+  display:none;
+}
+.root.is-menuOpened .menu{display:block;}
+.menu__bg{position:absolute;inset:0;background:var(--c-veil);backdrop-filter:blur(6px);}
+.menu__contents{
+  position:relative; height:100%;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:0 clamp(var(--edge), 8vw, 96px);
+  gap:var(--u);
+}
+.menu__nav{display:flex;flex-direction:column;gap:2px;}
+.menuItem{
+  display:flex; align-items:baseline; gap:14px;
+  padding:8px 0; text-align:left; width:fit-content;
+}
+.menuItem__num{
+  font-family:var(--font-mono); font-size:10px; letter-spacing:.12em; color:var(--c-ink-3);
+}
+.menuItem__label{
+  font-family:var(--font-en); font-size:clamp(28px,6vw,54px); line-height:1.1;
+  letter-spacing:-.01em; position:relative;
+}
+.menuItem__label::after{
+  content:""; position:absolute; left:0; bottom:.08em; width:100%; height:1px;
+  background:currentColor; transform:scaleX(0); transform-origin:0 50%;
+  transition:transform .4s var(--ease);
+}
+.menuItem:hover .menuItem__label::after{transform:scaleX(1);}
+.menuItem__jp{font-family:var(--font-jp);font-size:11px;color:var(--c-ink-2);}
+.menu__utils{display:flex;flex-wrap:wrap;gap:var(--u);margin-top:calc(var(--u)*4);}
+.menu__utilButton{
+  display:flex; align-items:center; gap:8px;
+  border:1px solid var(--c-line); padding:10px 16px;
+  font-family:var(--font-mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+  transition:border-color .3s var(--ease);
+}
+.menu__utilButton:hover{border-color:var(--c-ink);}
+.menu__utilButton svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:5;}
+
+/* ---- 設定パネル ---------------------------------------------- */
+.settings{position:absolute;inset:0;z-index:var(--z-panel);display:none;}
+.root.is-settingsOpened .settings{display:block;}
+.settings__bg{position:absolute;inset:0;background:var(--c-veil);backdrop-filter:blur(6px);}
+.settings__contents{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:min(520px, calc(100vw - var(--edge)*2));
+  max-height:min(680px, calc(100vh - var(--edge)*2));
+  background:var(--c-panel); border:1px solid var(--c-line);
+  display:flex; flex-direction:column;
+}
+.settings__title{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase;
+  padding:22px 24px; border-bottom:1px solid var(--c-line);
+}
+.settings .buttonClose{
+  position:absolute; top:0; right:0; width:64px; height:64px; border:0; background:none;
+}
+.buttonClose__line{
+  position:absolute; top:50%; left:50%; width:16px; height:1px; background:currentColor;
+}
+.buttonClose__line:nth-child(1){transform:translate(-50%,-50%) rotate(45deg);}
+.buttonClose__line:nth-child(2){transform:translate(-50%,-50%) rotate(-45deg);}
+.settings .buttonSquare__label{bottom:10px;}
+.settings__inner{overflow-y:auto; padding:6px 24px 26px;}
+.settings__section{padding:22px 0; border-bottom:1px solid var(--c-line);}
+.settings__section:last-child{border-bottom:0;}
+.settings__sectionTitle{
+  font-family:var(--font-mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--c-ink-2); margin-bottom:12px;
+}
+.settings__childSection{padding:14px 0 0;}
+.settings__notice{
+  margin-top:10px; font-size:11px; line-height:1.7; color:var(--c-ink-3);
+}
+.settings__section.is-disabled{opacity:.4; pointer-events:none;}
+
+.selector{
+  position:relative; display:flex; gap:var(--u);
+  padding:0;
+}
+.selector__indicstor{ /* 参考サイトの命名（誤記）をそのまま踏襲 */
+  position:absolute; top:0; left:0; height:100%;
+  border:1px solid var(--c-ink); pointer-events:none;
+  transition:transform .4s var(--ease), width .4s var(--ease);
+}
+.selectorItem{
+  border:1px solid var(--c-line); padding:12px 6px;
+  transition:border-color .3s var(--ease), color .3s var(--ease);
+  color:var(--c-ink-2);
+}
+.selectorItem:hover{color:var(--c-ink);}
+.selectorItem.is-current{color:var(--c-ink);}
+.selectorItem__inner{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.selectorItem__label{
+  font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+  white-space:nowrap;
+}
+.selectorItem__figure{display:block;width:34px;height:24px;}
+.selectorItem__figure > span{
+  position:relative; display:block; width:100%; height:100%;
+  border:1px solid currentColor;
+}
+.selectorItem__figure > span::after{
+  content:""; position:absolute; width:7px; height:7px; background:currentColor;
+}
+.optionMenuBottomRight::after{right:3px;bottom:3px;}
+.optionMenuBottomLeft::after{left:3px;bottom:3px;}
+.optionMenuTopRight::after{right:3px;top:3px;}
+
+/* 疑似スクロールバー（参考サイトの slideScrollbar 相当） */
+.slideContainer{position:relative;}
+.slideScrollbar{
+  position:absolute; top:6px; right:6px; width:2px; bottom:6px;
+  background:var(--c-line); opacity:0; transition:opacity .3s var(--ease);
+}
+.slideContainer:hover .slideScrollbar{opacity:1;}
+.slideScrollbar__drag{
+  position:absolute; left:0; width:100%; background:var(--c-ink-3);
+  border-radius:1px;
+}
+
+/* ---- アラート ------------------------------------------------ */
+.alertModal{position:absolute;inset:0;z-index:var(--z-modal);display:none;}
+.root.is-alertModalOpened .alertModal{display:block;}
+.alertModal__bg{position:absolute;inset:0;background:var(--c-veil);}
+.alertModal__contents{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:min(420px, calc(100vw - var(--edge)*2));
+  background:var(--c-panel); border:1px solid var(--c-line);
+  padding:32px 28px 24px; text-align:center;
+}
+.alertModal__txt{font-size:13px; line-height:1.9; color:var(--c-ink);}
+.alertModal__buttons{display:flex; justify-content:center; gap:var(--u); margin-top:24px;}
+.alertModal .buttonRect{height:44px;}
+
+/* ---- 表示モード別の出し分け ---------------------------------- */
+.root.is-displayModeMinimum .logo,
+.root.is-displayModeMinimum .buttonScrollTop{opacity:1;}
+.root.is-displayModeMinimum .buttonScrollTop{display:none;}
+
+/* ---- モック表示バッジ ---------------------------------------- */
+.mockBadge{
+  position:absolute; left:50%; top:12px; transform:translateX(-50%);
+  z-index:var(--z-chrome);
+  font-family:var(--font-mono); font-size:9px; letter-spacing:.14em;
+  color:var(--c-ink-3); white-space:nowrap; pointer-events:none;
+}
+
+@media (max-width:640px){
+  :root{--edge:16px; --btn:48px;}
+  .worksListFullModeIndicator{bottom:calc(var(--edge) + var(--btn) + var(--u)*2);}
+  .worksListFullModeHowToMove{bottom:calc(var(--edge) + var(--btn) + var(--u)*2);}
+  .mockBadge{display:none;}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:.01ms !important; animation-duration:.01ms !important;}
+}
+</style>
+</head>
+<body>
+
+<div id="__nuxt"><div id="__layout">
+<div class="root is-index is-blendMode is-menuBottomRight is-displayModeSimple" id="root">
+
+  <!-- ============ SVG シンボル（すべて新規作図） ============ -->
+  <svg class="spriteDefs" aria-hidden="true" focusable="false"><defs>
+
+    <!-- 字形：110×110 のグリッド上に太さ22の帯を組んだ幾何ステンシル -->
+    <symbol id="charSquare" viewBox="0 0 110 110"><path d="M15 15h80v80H15z"/></symbol>
+    <symbol id="charU" viewBox="0 0 110 110"><path d="M15 15h22v80H15zM73 15h22v80H73zM15 73h80v22H15z"/></symbol>
+    <symbol id="charN" viewBox="0 0 110 110"><path d="M15 15h22v80H15zM73 15h22v80H73zM37 15l36 53v27L37 42z"/></symbol>
+    <symbol id="charS" viewBox="0 0 110 110"><path d="M15 15h80v22H15zM15 15h22v51H15zM15 44h80v22H15zM73 44h22v51H73zM15 73h80v22H15z"/></symbol>
+    <symbol id="charH" viewBox="0 0 110 110"><path d="M15 15h22v80H15zM73 15h22v80H73zM15 44h80v22H15z"/></symbol>
+    <symbol id="charI" viewBox="0 0 110 110"><path d="M44 15h22v80H44z"/></symbol>
+    <symbol id="charF" viewBox="0 0 110 110"><path d="M15 15h22v80H15zM15 15h80v22H15zM15 44h66v22H15z"/></symbol>
+    <symbol id="charT" viewBox="0 0 110 110"><path d="M15 15h80v22H15zM44 15h22v80H44z"/></symbol>
+    <symbol id="charL" viewBox="0 0 110 110"><path d="M15 15h22v80H15zM15 73h80v22H15z"/></symbol>
+    <symbol id="charA" viewBox="0 0 110 110"><path d="M15 15h22v80H15zM73 15h22v80H73zM15 15h80v22H15zM15 44h80v22H15z"/></symbol>
+    <symbol id="charB" viewBox="0 0 110 110"><path d="M15 15h22v80H15zM15 15h80v22H15zM15 44h80v22H15zM15 73h80v22H15zM73 15h22v29H73zM73 66h22v29H73z"/></symbol>
+    <symbol id="charO" viewBox="0 0 110 110"><path d="M15 15h80v22H15zM15 73h80v22H15zM15 15h22v80H15zM73 15h22v80H73z"/></symbol>
+    <symbol id="charW" viewBox="0 0 110 110"><path d="M15 15h22v80H15zM73 15h22v80H73zM44 44h22v51H44zM15 73h80v22H15z"/></symbol>
+    <symbol id="charR" viewBox="0 0 110 110"><path d="M15 15h22v80H15zM15 15h80v22H15zM15 44h80v22H15zM73 15h22v51H73zM62 66h24l9 29H71z"/></symbol>
+    <symbol id="charK" viewBox="0 0 110 110"><path d="M15 15h22v80H15zM95 15v22L44 62V40zM44 48v22l51 25V73z"/></symbol>
+    <symbol id="charC" viewBox="0 0 110 110"><path d="M15 15h22v80H15zM15 15h80v22H15zM15 73h80v22H15z"/></symbol>
+    <symbol id="charD" viewBox="0 0 110 110"><path d="M15 15h22v80H15zM15 15h66v22H15zM15 73h66v22H15zM73 26h22v58H73z"/></symbol>
+    <symbol id="charE" viewBox="0 0 110 110"><path d="M15 15h22v80H15zM15 15h80v22H15zM15 44h66v22H15zM15 73h80v22H15z"/></symbol>
+    <symbol id="charG" viewBox="0 0 110 110"><path d="M15 15h22v80H15zM15 15h80v22H15zM15 73h80v22H15zM73 44h22v51H73zM55 44h40v22H55z"/></symbol>
+    <symbol id="charJ" viewBox="0 0 110 110"><path d="M73 15h22v80H73zM15 73h80v22H15zM15 55h22v40H15z"/></symbol>
+    <symbol id="charM" viewBox="0 0 110 110"><path d="M15 15h22v80H15zM73 15h22v80H73zM15 15h80v22H15zM44 15h22v51H44z"/></symbol>
+    <symbol id="charP" viewBox="0 0 110 110"><path d="M15 15h22v80H15zM15 15h80v22H15zM15 44h80v22H15zM73 15h22v51H73z"/></symbol>
+    <symbol id="charQ" viewBox="0 0 110 110"><path d="M15 15h80v22H15zM15 73h80v22H15zM15 15h22v80H15zM73 15h22v80H73zM62 62h20l13 33H75z"/></symbol>
+    <symbol id="charV" viewBox="0 0 110 110"><path d="M15 15h22l29 80H44zM73 15h22L66 95H44z"/></symbol>
+    <symbol id="charX" viewBox="0 0 110 110"><path d="M15 15h22l58 80H73zM73 15h22L37 95H15z"/></symbol>
+    <symbol id="charY" viewBox="0 0 110 110"><path d="M15 15h22l29 44H44zM73 15h22L66 59H44zM44 51h22v44H44z"/></symbol>
+    <symbol id="charZ" viewBox="0 0 110 110"><path d="M15 15h80v22H15zM15 73h80v22H15zM56 26h24L54 84H30z"/></symbol>
+
+    <!-- アイコン：線画。stroke は利用側で指定 -->
+    <symbol id="iconArrowKey" viewBox="0 0 100 100">
+      <rect x="36" y="6" width="28" height="28" rx="3"/>
+      <rect x="6" y="40" width="28" height="28" rx="3"/>
+      <rect x="66" y="40" width="28" height="28" rx="3"/>
+      <rect x="36" y="40" width="28" height="28" rx="3"/>
+    </symbol>
+    <symbol id="iconScroll" viewBox="0 0 100 100">
+      <rect x="28" y="8" width="44" height="84" rx="22"/>
+      <path d="M50 26v14"/>
+    </symbol>
+    <symbol id="iconSwipe" viewBox="0 0 100 100">
+      <path d="M50 22v46"/>
+      <path d="M34 38 50 22l16 16"/>
+      <path d="M18 78h64"/>
+    </symbol>
+    <symbol id="iconArrow" viewBox="0 0 100 100">
+      <path d="M18 50h58"/><path d="M56 30l20 20-20 20"/>
+    </symbol>
+    <symbol id="iconSettings" viewBox="0 0 100 100">
+      <path d="M8 28h84M8 50h84M8 72h84"/>
+      <circle cx="32" cy="28" r="9"/><circle cx="66" cy="50" r="9"/><circle cx="42" cy="72" r="9"/>
+    </symbol>
+    <symbol id="iconMail" viewBox="0 0 100 100">
+      <rect x="8" y="20" width="84" height="60" rx="4"/><path d="M8 26l42 30 42-30"/>
+    </symbol>
+    <symbol id="iconBlank" viewBox="0 0 100 100">
+      <path d="M52 12h36v36"/><path d="M88 12L44 56"/><path d="M76 60v28H12V24h28"/>
+    </symbol>
+  </defs></svg>
+
+  <div class="wrapper">
+
+    <!-- ============ 背景 ============ -->
+    <div class="patternBg" id="patternBg"><div class="bg"></div></div>
+
+    <!-- ============ メインビジュアル ============ -->
+    <div class="mainVisual" id="mainVisual"><canvas id="visualCanvas"></canvas></div>
+
+    <!-- ============ Works（フルモード） ============ -->
+    <div class="worksListFullMode" id="worksListFullMode">
+      <button class="worksListFullMode__clickableArea" id="worksClickableArea" type="button">
+        <span class="worksListFullMode__clickableAreaTxt">
+          <span class="worksListFullMode__clickableAreaTxtInner" id="worksAreaTxt">Loading…</span>
+        </span>
+        <span class="worksItem__titles">
+          <span class="worksItem__title"><span class="worksItem__titleInner" id="worksTitle">—</span></span>
+          <span class="worksItem__meta" id="worksMeta"></span>
+        </span>
+      </button>
+
+      <div class="worksListFullModeHowToMove">
+        <div class="worksListFullModeHowToMoveItem worksListFullModeHowToMoveItem--arrowKey">
+          <svg aria-hidden="true"><use href="#iconArrowKey"/></svg><span>Press arrow key</span>
+        </div>
+        <div class="worksListFullModeHowToMoveItem worksListFullModeHowToMoveItem--scroll">
+          <svg aria-hidden="true"><use href="#iconScroll"/></svg><span>Mouse scroll</span>
+        </div>
+        <div class="worksListFullModeHowToMoveItem worksListFullModeHowToMoveItem--swipe">
+          <svg aria-hidden="true"><use href="#iconSwipe"/></svg>
+          <span>Swipe<small>and tap to see more details</small></span>
+        </div>
+      </div>
+
+      <div class="worksListFullModeIndicator">
+        <button class="worksListFullModeIndicator__prev" type="button" aria-label="前の作品">
+          <svg aria-hidden="true"><use href="#iconArrow"/></svg>
+        </button>
+        <p class="worksListFullModeIndicator__current" id="indicatorCurrent" aria-live="off"></p>
+        <span class="worksListFullModeIndicator__sep">/</span>
+        <p class="worksListFullModeIndicator__total" id="indicatorTotal"></p>
+        <button class="worksListFullModeIndicator__next" type="button" aria-label="次の作品">
+          <svg aria-hidden="true"><use href="#iconArrow"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ============ ロゴ ============ -->
+    <h1 class="logo" id="logo">
+      <a class="logo_inner" href="#" id="logoLink">
+        <span class="label" id="logoLabel">portfolio</span>
+        <span class="chars" id="logoChars"></span>
+      </a>
+    </h1>
+
+    <!-- ============ ポインタ追従 ============ -->
+    <div class="pointerNotice" id="pointerNotice">
+      <span class="pointerNotice__square"><svg viewBox="0 0 110 110" aria-hidden="true"><use href="#charSquare" fill="currentColor"/></svg></span>
+      <p class="pointerNotice__label" id="pointerLabel">View details</p>
+    </div>
+
+    <!-- ============ back ボタン（左上） ============ -->
+    <div class="buttonBackWrapper is-onTopLeft" id="buttonBackWrapper">
+      <button class="buttonRect buttonBack" type="button" id="buttonBack">
+        <span class="inner"><span class="buttonRect__label" id="buttonBackLabel">back</span></span>
+      </button>
+    </div>
+
+    <!-- ============ 角ボタン群 ============ -->
+    <div class="buttonContainer buttonContainer--bottomRight" id="buttonContainer">
+      <button class="buttonSquare buttonScrollTop" type="button" id="buttonScrollTop" aria-label="ページの先頭へ">
+        <span class="buttonScrollTop__arrow"></span>
+        <span class="buttonSquare__label">top</span>
+      </button>
+      <button class="buttonSquare buttonMenu" type="button" id="buttonMenu" aria-expanded="false" aria-controls="menu">
+        <span class="buttonMenu__line"></span><span class="buttonMenu__line"></span><span class="buttonMenu__line"></span>
+        <span class="buttonSquare__label buttonSquare__label--closed">menu</span>
+        <span class="buttonSquare__label buttonSquare__label--opened">close</span>
+      </button>
+    </div>
+
+    <!-- ============ 中央コンテンツ ============ -->
+    <main class="contents">
+      <section class="contentsRoot">
+        <p class="lead">
+          I'm a Web / Application Developer based in Tokyo.
+          <span class="lead__jp">東京でWebとアプリケーションをつくっています。</span>
+        </p>
+        <button class="buttonWorks is-loaded" type="button" id="buttonWorks"><span>View works</span></button>
+      </section>
+    </main>
+
+    <!-- ============ メニュー ============ -->
+    <div class="menu" id="menu">
+      <div class="menu__bg" data-close-menu></div>
+      <div class="menu__contents">
+        <nav class="menu__nav">
+          <button class="menuItem" type="button" data-mock-nav="Works"><span class="menuItem__num">01</span><span class="menuItem__label">Works</span><span class="menuItem__jp">つくったもの</span></button>
+          <button class="menuItem" type="button" data-mock-nav="About"><span class="menuItem__num">02</span><span class="menuItem__label">About</span><span class="menuItem__jp">自己紹介</span></button>
+          <button class="menuItem" type="button" data-mock-nav="Contact"><span class="menuItem__num">03</span><span class="menuItem__label">Contact</span><span class="menuItem__jp">お問い合わせ</span></button>
+          <button class="menuItem" type="button" data-mock-nav="Privacy"><span class="menuItem__num">04</span><span class="menuItem__label">Privacy</span><span class="menuItem__jp">プライバシーポリシー</span></button>
+        </nav>
+        <div class="menu__utils">
+          <button class="menu__utilButton" type="button" id="openSettings">
+            <svg aria-hidden="true"><use href="#iconSettings"/></svg><span>Settings</span>
+          </button>
+          <button class="menu__utilButton" type="button" data-mock-nav="Mail">
+            <svg aria-hidden="true"><use href="#iconMail"/></svg><span>Mail</span>
+          </button>
+          <button class="menu__utilButton" type="button" data-mock-nav="External">
+            <svg aria-hidden="true"><use href="#iconBlank"/></svg><span>External</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 設定 ============ -->
+    <div class="settings" id="settings">
+      <div class="settings__bg" data-close-settings></div>
+      <div class="settings__contents" role="dialog" aria-modal="true" aria-label="Settings">
+        <h2 class="settings__title">Settings</h2>
+        <button class="buttonClose buttonSquare" type="button" id="closeSettings">
+          <span class="buttonClose__line"></span><span class="buttonClose__line"></span>
+          <span class="buttonSquare__label">close</span>
+        </button>
+
+        <div class="settings__inner slideContainer slideContainer--initialized slideContainer--vertical slideContainer--free-mode" id="settingsInner">
+          <div class="slideScrollbar"><div class="slideScrollbar__drag" id="scrollbarDrag"></div></div>
+          <div class="slideWrapper"><div class="slideItem slideItem--active">
+
+            <section class="settings__section">
+              <h3 class="settings__sectionTitle">Display Mode</h3>
+              <div class="selector" data-key="displayMode">
+                <div class="selector__indicstor"></div>
+                <button class="selectorItem" type="button" data-value="full"><span class="selectorItem__inner"><span class="selectorItem__label">Full</span></span></button>
+                <button class="selectorItem" type="button" data-value="simple"><span class="selectorItem__inner"><span class="selectorItem__label">Simple</span></span></button>
+                <button class="selectorItem" type="button" data-value="minimum"><span class="selectorItem__inner"><span class="selectorItem__label">Minimum</span></span></button>
+              </div>
+              <p class="settings__notice">Full は作品を画面いっぱいに切り替えて見せる表示。Minimum は演出を止めた最小表示。</p>
+            </section>
+
+            <section class="settings__section">
+              <h3 class="settings__sectionTitle">Menu Position</h3>
+              <div class="selector" data-key="menuPosition">
+                <div class="selector__indicstor"></div>
+                <button class="selectorItem" type="button" data-value="bottomRight"><span class="selectorItem__inner"><span class="selectorItem__figure"><span class="optionMenuBottomRight"></span></span><span class="selectorItem__label">Bottom right</span></span></button>
+                <button class="selectorItem" type="button" data-value="bottomLeft"><span class="selectorItem__inner"><span class="selectorItem__figure"><span class="optionMenuBottomLeft"></span></span><span class="selectorItem__label">Bottom left</span></span></button>
+                <button class="selectorItem" type="button" data-value="topRight"><span class="selectorItem__inner"><span class="selectorItem__figure"><span class="optionMenuTopRight"></span></span><span class="selectorItem__label">Top right</span></span></button>
+              </div>
+            </section>
+
+            <section class="settings__section">
+              <h3 class="settings__sectionTitle">Color scheme</h3>
+
+              <section class="settings__childSection">
+                <h4 class="settings__sectionTitle">Auto light/dark mode</h4>
+                <div class="selector" data-key="autoDarkMode">
+                  <div class="selector__indicstor"></div>
+                  <button class="selectorItem" type="button" data-value="off"><span class="selectorItem__inner"><span class="selectorItem__label">Off</span></span></button>
+                  <button class="selectorItem" type="button" data-value="on"><span class="selectorItem__inner"><span class="selectorItem__label">On</span></span></button>
+                </div>
+                <p class="settings__notice">OSの設定に合わせるかどうか。</p>
+              </section>
+
+              <section class="settings__childSection" id="lightDarkSection">
+                <h4 class="settings__sectionTitle">Light mode / Dark mode</h4>
+                <div class="selector" data-key="isDarkMode">
+                  <div class="selector__indicstor"></div>
+                  <button class="selectorItem" type="button" data-value="light"><span class="selectorItem__inner"><span class="selectorItem__label">Light</span></span></button>
+                  <button class="selectorItem" type="button" data-value="dark"><span class="selectorItem__inner"><span class="selectorItem__label">Dark</span></span></button>
+                </div>
+                <p class="settings__notice">「Auto light/dark mode」がオフのとき、配色を選べます。</p>
+              </section>
+            </section>
+
+          </div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ アラート ============ -->
+    <div class="alertModal" id="alertModal">
+      <div class="alertModal__bg" data-close-alert></div>
+      <div class="alertModal__contents" role="alertdialog" aria-modal="true">
+        <p class="alertModal__txt" id="alertModalTxt">error</p>
+        <div class="alertModal__buttons">
+          <button class="buttonRect alertModal__buttonCancel" type="button" id="alertCancel" hidden>
+            <span class="inner"><span class="buttonRect__label">cancel</span></span>
+          </button>
+          <button class="buttonRect alertModal__buttonOK" type="button" id="alertOK">
+            <span class="inner"><span class="buttonRect__label">ok</span></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <p class="mockBadge">structure mock — 配色・書体・文言はこれから差し替える前提の仮置き</p>
+  </div>
+</div>
+</div></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ==========================================================
+     1. 状態（参考サイトのストア構成に合わせて持たせている）
+     ========================================================== */
+  var state = {
+    isMenuOpened: false,
+    isSettingsOpened: false,
+    isAlertModalOpened: false,
+    isScrolled: false,
+    isRootLoaded: false,
+    isLogoShown: false,
+    isButtonBackAvailable: false,
+    buttonBackLabel: 'back',
+    supportsBlendMode: (window.CSS && CSS.supports && CSS.supports('mix-blend-mode', 'difference')) || false,
+    logoTxt: 'yourname',   // 差し替え前提のプレースホルダ。a-z のみ（字形を用意している範囲）
+    currentId: 0,
+    prevId: 0,
+    history: [],
+    isWorksListFullModeHoverd: false,
+    pointerColor: 'auto',   // 'auto' なら配色トークンに従う
+    alertModalTxt: 'error',
+    alertModalMode: 'alert',
+    displayMode: 'simple',
+    menuPosition: 'bottomRight',
+    autoDarkMode: false,
+    isDarkMode: false
+  };
+
+  var PREF_KEY = 'portfolioMock.prefs.v1';
+  var PREF_FIELDS = ['displayMode', 'menuPosition', 'autoDarkMode', 'isDarkMode', 'logoTxt'];
+
+  function loadPrefs() {
+    try {
+      var raw = localStorage.getItem(PREF_KEY);
+      if (!raw) return;
+      var saved = JSON.parse(raw);
+      PREF_FIELDS.forEach(function (k) {
+        if (Object.prototype.hasOwnProperty.call(saved, k)) state[k] = saved[k];
+      });
+    } catch (e) { /* localStorage が使えない環境では既定値のまま */ }
+  }
+  function savePrefs() {
+    try {
+      var out = {};
+      PREF_FIELDS.forEach(function (k) { out[k] = state[k]; });
+      localStorage.setItem(PREF_KEY, JSON.stringify(out));
+    } catch (e) {}
+  }
+
+  /* ==========================================================
+     2. 仮データ
+     ========================================================== */
+  // 要件定義（docs/requirements-draft.md 6章）の棚卸し結果を仮で流し込んでいる。
+  // 本実装ではデータファイル管理に置き換える。
+  var works = [
+    { title: '埋め込み型RAGチャットボット', meta: 'Service / rag', seed: 11 },
+    { title: 'みんなの駐車場マップ',       meta: 'Service / map', seed: 27 },
+    { title: 'イベント事前決済',           meta: 'Service / event', seed: 43 },
+    { title: 'WEB意見箱',                  meta: 'Service / webbox', seed: 58 },
+    { title: 'ビジネスマッチング',         meta: 'Service / enlink', seed: 71 },
+    { title: '飲みゲーム',                 meta: 'Service / alcohol', seed: 89 },
+    { title: 'キャンペーンサイト',         meta: 'Web / crafy', seed: 97 },
+    { title: '企業サイト制作・運用',       meta: 'Web / revenge.co.jp', seed: 113 }
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var root = $('root');
+
+  /* ==========================================================
+     3. 背景のグレイン（SVGノイズをその場で生成）
+     ========================================================== */
+  (function buildGrain() {
+    var svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180">' +
+        '<filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="3" stitchTiles="stitch"/>' +
+        '<feColorMatrix type="saturate" values="0"/></filter>' +
+        '<rect width="180" height="180" filter="url(#n)" opacity="0.42"/>' +
+      '</svg>';
+    document.documentElement.style.setProperty(
+      '--grain', 'url("data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg) + '")'
+    );
+  })();
+
+  /* ==========================================================
+     4. ロゴ（文字シンボルを1文字ずつ組む）
+     ========================================================== */
+  var CHAR_SYMBOLS = {};
+  'abcdefghijklmnopqrstuvwxyz'.split('').forEach(function (c) {
+    CHAR_SYMBOLS[c] = 'char' + c.toUpperCase();
+  });
+
+  function buildLogo() {
+    var chars = $('logoChars');
+    chars.innerHTML = '';
+    $('logoLabel').textContent = state.logoTxt;
+
+    var frag = document.createDocumentFragment();
+    frag.appendChild(makeChar('square'));
+    state.logoTxt.toLowerCase().split('').forEach(function (c) {
+      if (CHAR_SYMBOLS[c]) frag.appendChild(makeChar(c));
+    });
+    chars.appendChild(frag);
+  }
+
+  function makeChar(c) {
+    var span = document.createElement('span');
+    span.className = 'char char--' + c;
+    var inner = document.createElement('span');
+    inner.className = 'char__inner';
+    inner.innerHTML =
+      '<svg viewBox="0 0 110 110" aria-hidden="true"><use href="#' +
+      (c === 'square' ? 'charSquare' : CHAR_SYMBOLS[c]) + '" fill="currentColor"/></svg>';
+    var underline = document.createElement('span');
+    underline.className = 'char__underline';
+    span.appendChild(inner);
+    span.appendChild(underline);
+    return span;
+  }
+
+  /* ==========================================================
+     5. 桁ローラー（0-9 を縦に流して数字を出す）
+     ========================================================== */
+  function buildDigitRoller(el, place) {
+    var wrap = document.createElement('span');
+    wrap.className = 'worksListFullModeIndicator__digit' + place;
+    var inner = document.createElement('span');
+    inner.className = 'worksListFullModeIndicator__digit' + place + 'Inner';
+    // 前後に 9 / 0 を足しておくと 9→0 の繰り上がりが飛ばない
+    [9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0].forEach(function (n) {
+      var d = document.createElement('span');
+      d.className = 'worksListFullModeIndicator__digit';
+      d.textContent = String(n);
+      inner.appendChild(d);
+    });
+    wrap.appendChild(inner);
+    el.appendChild(wrap);
+    return inner;
+  }
+
+  var rollers = {};
+  function setupIndicator() {
+    var cur = $('indicatorCurrent'), tot = $('indicatorTotal');
+    cur.innerHTML = ''; tot.innerHTML = '';
+    rollers.cur10 = buildDigitRoller(cur, '10');
+    rollers.cur01 = buildDigitRoller(cur, '01');
+    rollers.tot10 = buildDigitRoller(tot, '10');
+    rollers.tot01 = buildDigitRoller(tot, '01');
+    setNumber(rollers.tot10, rollers.tot01, works.length);
+  }
+  function setNumber(r10, r01, n) {
+    var v = Math.max(0, Math.min(99, n));
+    r10.style.setProperty('--i', String(Math.floor(v / 10) + 1));
+    r01.style.setProperty('--i', String((v % 10) + 1));
+  }
+
+  /* ==========================================================
+     6. メインビジュアル（canvas / 自前の生成グラフィック）
+     ========================================================== */
+  var canvas = $('visualCanvas'), ctx = canvas.getContext('2d');
+  var visual = { w: 0, h: 0, dpr: 1, t: 0, seed: works[0].seed, targetSeed: works[0].seed, raf: 0 };
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function resizeCanvas() {
+    var rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    visual.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    visual.w = rect.width;
+    visual.h = rect.height;
+    canvas.width = Math.round(rect.width * visual.dpr);
+    canvas.height = Math.round(rect.height * visual.dpr);
+    ctx.setTransform(visual.dpr, 0, 0, visual.dpr, 0, 0);
+  }
+
+  function drawVisual() {
+    var w = visual.w, h = visual.h;
+    if (!w || !h) return;
+    ctx.clearRect(0, 0, w, h);
+
+    var ink = getComputedStyle(root).getPropertyValue('--c-visual').trim() || '#0a0a0a';
+    visual.seed += (visual.targetSeed - visual.seed) * 0.06;
+
+    var cols = 6, rows = 8;
+    var cw = w / cols, ch = h / rows;
+    var t = visual.t;
+
+    ctx.save();
+    for (var y = 0; y < rows; y++) {
+      for (var x = 0; x < cols; x++) {
+        var i = y * cols + x;
+        var n = Math.sin(i * 0.7 + visual.seed * 0.13) * 0.5 + 0.5;
+        var wave = Math.sin(t * 0.7 + x * 0.55 + y * 0.32 + visual.seed * 0.05) * 0.5 + 0.5;
+        var s = Math.max(0, (n * 0.65 + wave * 0.35) - 0.18);
+        if (s <= 0.02) continue;
+        var size = Math.min(cw, ch) * s * 0.92;
+        var cx = x * cw + cw / 2;
+        var cy = y * ch + ch / 2;
+        ctx.fillStyle = ink;
+        ctx.globalAlpha = 0.14 + s * 0.62;
+        ctx.fillRect(cx - size / 2, cy - size / 2, size, size);
+      }
+    }
+    ctx.restore();
+
+    // 走査線：全体を1本の帯でつなぐ
+    ctx.save();
+    ctx.globalAlpha = 0.9;
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 1;
+    var yLine = (Math.sin(t * 0.45 + visual.seed * 0.07) * 0.5 + 0.5) * h;
+    ctx.beginPath(); ctx.moveTo(0, yLine); ctx.lineTo(w, yLine); ctx.stroke();
+    ctx.restore();
+
+    // 外枠
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+    ctx.restore();
+  }
+
+  function loop() {
+    visual.t += reduceMotion ? 0 : 0.016;
+    drawVisual();
+    visual.raf = requestAnimationFrame(loop);
+  }
+
+  /* ==========================================================
+     7. Works の切り替え
+     ========================================================== */
+  function syncClickableArea() {
+    var mv = $('mainVisual').getBoundingClientRect();
+    var area = $('worksClickableArea');
+    area.style.width = Math.round(mv.width) + 'px';
+    area.style.height = Math.round(mv.height) + 'px';
+  }
+
+  function goTo(index, silent) {
+    var len = works.length;
+    var next = ((index % len) + len) % len;
+    if (next === state.currentId && !silent) return;
+    state.prevId = state.currentId;
+    state.currentId = next;
+    state.history.push(next);
+
+    var titleEl = $('worksTitle');
+    titleEl.classList.add('is-out');
+    window.setTimeout(function () {
+      titleEl.textContent = works[next].title;
+      $('worksMeta').textContent = works[next].meta;
+      titleEl.classList.remove('is-out');
+    }, silent ? 0 : 240);
+
+    setNumber(rollers.cur10, rollers.cur01, next + 1);
+    visual.targetSeed = works[next].seed;
+  }
+
+  /* ==========================================================
+     8. モーダル / パネル
+     ========================================================== */
+  function openMenu(v) {
+    state.isMenuOpened = v;
+    $('buttonMenu').setAttribute('aria-expanded', String(v));
+    if (v) openSettings(false);
+    apply();
+  }
+  function openSettings(v) {
+    state.isSettingsOpened = v;
+    apply();
+    if (v) updateScrollbar();
+  }
+  function alertModal(txt, mode, onOK) {
+    state.alertModalTxt = txt;
+    state.alertModalMode = mode || 'alert';
+    state.isAlertModalOpened = true;
+    $('alertModalTxt').textContent = txt;
+    $('alertCancel').hidden = state.alertModalMode !== 'confirm';
+    alertModal._onOK = onOK || null;
+    apply();
+  }
+  function closeAlert() { state.isAlertModalOpened = false; apply(); }
+
+  /* ==========================================================
+     9. セレクター（設定UI）
+     ========================================================== */
+  var GAP = 8;
+  function initSelectors() {
+    Array.prototype.forEach.call(document.querySelectorAll('.selector'), function (sel) {
+      var items = sel.querySelectorAll('.selectorItem');
+      var n = items.length;
+      var itemWidth = 'calc((100% - ' + (GAP * (n - 1)) + 'px) / ' + n + ')';
+      Array.prototype.forEach.call(items, function (item) {
+        item.style.width = itemWidth;
+        item.addEventListener('click', function () {
+          onSelect(sel.dataset.key, item.dataset.value);
+        });
+      });
+      sel.querySelector('.selector__indicstor').style.width =
+        'calc(' + (100 / n) + '% - ' + (GAP * (n - 1) / n) + 'px)';
+    });
+  }
+
+  function onSelect(key, value) {
+    if (key === 'displayMode') state.displayMode = value;
+    if (key === 'menuPosition') state.menuPosition = value;
+    if (key === 'autoDarkMode') {
+      state.autoDarkMode = (value === 'on');
+      if (state.autoDarkMode) state.isDarkMode = darkMQ.matches;
+    }
+    if (key === 'isDarkMode') state.isDarkMode = (value === 'dark');
+    savePrefs();
+    apply();
+  }
+
+  function currentValue(key) {
+    if (key === 'displayMode') return state.displayMode;
+    if (key === 'menuPosition') return state.menuPosition;
+    if (key === 'autoDarkMode') return state.autoDarkMode ? 'on' : 'off';
+    if (key === 'isDarkMode') return state.isDarkMode ? 'dark' : 'light';
+    return null;
+  }
+
+  function syncSelectors() {
+    Array.prototype.forEach.call(document.querySelectorAll('.selector'), function (sel) {
+      var value = currentValue(sel.dataset.key);
+      var items = sel.querySelectorAll('.selectorItem');
+      var idx = 0;
+      Array.prototype.forEach.call(items, function (item, i) {
+        var on = item.dataset.value === value;
+        item.classList.toggle('is-current', on);
+        item.setAttribute('aria-pressed', String(on));
+        if (on) idx = i;
+      });
+      sel.querySelector('.selector__indicstor').style.transform =
+        'translateX(' + (idx * 100) + '%) translateX(' + (idx * GAP) + 'px)';
+    });
+    $('lightDarkSection').classList.toggle('is-disabled', state.autoDarkMode);
+  }
+
+  /* ==========================================================
+     10. 状態をDOMに反映
+     ========================================================== */
+  var MENU_POS_CLASS = {
+    bottomRight: 'is-menuBottomRight',
+    bottomLeft: 'is-menuBottomLeft',
+    topRight: 'is-menuTopRight'
+  };
+  var DISPLAY_CLASS = {
+    full: 'is-displayModeFull',
+    simple: 'is-displayModeSimple',
+    minimum: 'is-displayModeMinimum'
+  };
+
+  function apply() {
+    root.classList.toggle('is-blendMode', state.supportsBlendMode && state.displayMode !== 'minimum');
+    root.classList.toggle('is-darkMode', state.isDarkMode);
+    root.classList.toggle('is-menuOpened', state.isMenuOpened);
+    root.classList.toggle('is-settingsOpened', state.isSettingsOpened);
+    root.classList.toggle('is-alertModalOpened', state.isAlertModalOpened);
+    root.classList.toggle('is-scrolled', state.isScrolled);
+    root.classList.toggle('is-rootLoaded', state.isRootLoaded);
+
+    Object.keys(MENU_POS_CLASS).forEach(function (k) {
+      root.classList.toggle(MENU_POS_CLASS[k], state.menuPosition === k);
+    });
+    Object.keys(DISPLAY_CLASS).forEach(function (k) {
+      root.classList.toggle(DISPLAY_CLASS[k], state.displayMode === k);
+    });
+
+    $('buttonContainer').className =
+      'buttonContainer buttonContainer--' + state.menuPosition;
+
+    $('logo').classList.toggle('is-shown', state.isLogoShown);
+    $('patternBg').classList.toggle('is-shown', state.isRootLoaded);
+    $('patternBg').classList.remove('is-invisible');
+    $('mainVisual').classList.toggle('is-shown', state.isRootLoaded && state.displayMode !== 'minimum');
+    $('buttonBackWrapper').classList.toggle('is-shown', state.isButtonBackAvailable);
+    $('buttonBackLabel').textContent = state.buttonBackLabel;
+
+    if (state.pointerColor === 'auto') root.style.removeProperty('--pointer');
+    else root.style.setProperty('--pointer', state.pointerColor);
+
+    syncSelectors();
+    syncClickableArea();
+  }
+
+  /* ==========================================================
+     11. ポインタ追従
+     ========================================================== */
+  var pointer = { x: window.innerWidth / 2, y: window.innerHeight / 2, cx: 0, cy: 0, raf: 0 };
+  var pointerEl = $('pointerNotice');
+
+  function pointerLoop() {
+    pointer.cx += (pointer.x - pointer.cx) * 0.22;
+    pointer.cy += (pointer.y - pointer.cy) * 0.22;
+    pointerEl.style.transform =
+      'translate(-50%,-50%) translate(' + pointer.cx.toFixed(1) + 'px, ' + pointer.cy.toFixed(1) + 'px)';
+    pointer.raf = requestAnimationFrame(pointerLoop);
+  }
+
+  function setPointerVisible(v, label) {
+    state.isWorksListFullModeHoverd = v;
+    if (label) $('pointerLabel').textContent = label;
+    pointerEl.style.opacity = v ? '1' : '0';
+  }
+
+  /* ==========================================================
+     12. 設定パネルの疑似スクロールバー
+     ========================================================== */
+  function updateScrollbar() {
+    var inner = $('settingsInner'), drag = $('scrollbarDrag');
+    var ratio = inner.clientHeight / inner.scrollHeight;
+    if (ratio >= 1) { drag.style.height = '0'; return; }
+    var trackH = inner.clientHeight - 12;
+    var h = Math.max(24, trackH * ratio);
+    var max = inner.scrollHeight - inner.clientHeight;
+    var top = max ? (inner.scrollTop / max) * (trackH - h) : 0;
+    drag.style.height = h + 'px';
+    drag.style.transform = 'translateY(' + top + 'px)';
+  }
+
+  /* ==========================================================
+     13. イベント
+     ========================================================== */
+  var darkMQ = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function bind() {
+    // ロゴ
+    $('logoLink').addEventListener('click', function (e) {
+      e.preventDefault();
+      goTo(0);
+    });
+
+    // メニュー
+    $('buttonMenu').addEventListener('click', function () { openMenu(!state.isMenuOpened); });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-close-menu]'), function (el) {
+      el.addEventListener('click', function () { openMenu(false); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-mock-nav]'), function (el) {
+      el.addEventListener('click', function () {
+        openMenu(false);
+        alertModal('「' + el.dataset.mockNav + '」は構造モックのため未実装です。', 'alert');
+      });
+    });
+
+    // 設定
+    $('openSettings').addEventListener('click', function () { openMenu(false); openSettings(true); });
+    $('closeSettings').addEventListener('click', function () { openSettings(false); });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-close-settings]'), function (el) {
+      el.addEventListener('click', function () { openSettings(false); });
+    });
+    $('settingsInner').addEventListener('scroll', updateScrollbar);
+
+    // アラート
+    $('alertOK').addEventListener('click', function () {
+      var cb = alertModal._onOK; closeAlert(); if (cb) cb();
+    });
+    $('alertCancel').addEventListener('click', closeAlert);
+    Array.prototype.forEach.call(document.querySelectorAll('[data-close-alert]'), function (el) {
+      el.addEventListener('click', closeAlert);
+    });
+
+    // back / top
+    $('buttonBack').addEventListener('click', function () {
+      state.isButtonBackAvailable = false;
+      state.displayMode = 'simple';
+      savePrefs(); apply();
+    });
+    $('buttonScrollTop').addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+    });
+
+    // View works → フルモードへ
+    $('buttonWorks').addEventListener('click', function () {
+      state.displayMode = 'full';
+      state.isButtonBackAvailable = true;
+      state.buttonBackLabel = 'back';
+      savePrefs(); apply();
+    });
+
+    // Works の操作
+    document.querySelector('.worksListFullModeIndicator__prev')
+      .addEventListener('click', function () { goTo(state.currentId - 1); });
+    document.querySelector('.worksListFullModeIndicator__next')
+      .addEventListener('click', function () { goTo(state.currentId + 1); });
+
+    var area = $('worksClickableArea');
+    area.addEventListener('mouseenter', function () { setPointerVisible(true, 'View details'); });
+    area.addEventListener('mouseleave', function () { setPointerVisible(false); });
+    area.addEventListener('click', function () {
+      alertModal('「' + works[state.currentId].title + '」の詳細ページは構造モックのため未実装です。', 'alert');
+    });
+
+    // ポインタ
+    window.addEventListener('pointermove', function (e) { pointer.x = e.clientX; pointer.y = e.clientY; });
+
+    // ホイール
+    var wheelLock = false;
+    window.addEventListener('wheel', function (e) {
+      if (state.displayMode !== 'full') return;
+      if (state.isMenuOpened || state.isSettingsOpened || state.isAlertModalOpened) return;
+      if (Math.abs(e.deltaY) < 8 || wheelLock) return;
+      wheelLock = true;
+      goTo(state.currentId + (e.deltaY > 0 ? 1 : -1));
+      window.setTimeout(function () { wheelLock = false; }, 420);
+    }, { passive: true });
+
+    // キーボード
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        if (state.isAlertModalOpened) return closeAlert();
+        if (state.isSettingsOpened) return openSettings(false);
+        if (state.isMenuOpened) return openMenu(false);
+      }
+      if (state.displayMode !== 'full') return;
+      if (state.isMenuOpened || state.isSettingsOpened || state.isAlertModalOpened) return;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goTo(state.currentId + 1); }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(state.currentId - 1); }
+    });
+
+    // スワイプ
+    var touch = { y: 0, active: false };
+    window.addEventListener('touchstart', function (e) {
+      touch.y = e.touches[0].clientY; touch.active = true;
+    }, { passive: true });
+    window.addEventListener('touchend', function (e) {
+      if (!touch.active || state.displayMode !== 'full') return;
+      touch.active = false;
+      if (state.isMenuOpened || state.isSettingsOpened || state.isAlertModalOpened) return;
+      var dy = e.changedTouches[0].clientY - touch.y;
+      if (Math.abs(dy) > 40) goTo(state.currentId + (dy < 0 ? 1 : -1));
+    }, { passive: true });
+
+    // スクロール
+    window.addEventListener('scroll', function () {
+      var next = window.scrollY > 40;
+      if (next !== state.isScrolled) { state.isScrolled = next; apply(); }
+    }, { passive: true });
+
+    // リサイズ
+    var resizeTimer = 0;
+    window.addEventListener('resize', function () {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(function () {
+        resizeCanvas(); syncClickableArea(); updateScrollbar();
+      }, 120);
+    });
+
+    // OS の配色変更
+    var onDarkChange = function (e) {
+      if (state.autoDarkMode) { state.isDarkMode = e.matches; savePrefs(); apply(); }
+    };
+    if (darkMQ.addEventListener) darkMQ.addEventListener('change', onDarkChange);
+    else if (darkMQ.addListener) darkMQ.addListener(onDarkChange);
+  }
+
+  /* ==========================================================
+     14. 起動
+     ========================================================== */
+  function init() {
+    loadPrefs();
+    if (state.autoDarkMode) state.isDarkMode = darkMQ.matches;
+
+    buildLogo();
+    setupIndicator();
+    initSelectors();
+    bind();
+    apply();
+
+    resizeCanvas();
+    goTo(0, true);
+    loop();
+    pointerLoop();
+
+    window.requestAnimationFrame(function () {
+      state.isRootLoaded = true;
+      apply();
+      window.setTimeout(function () {
+        state.isLogoShown = true;
+        $('worksAreaTxt').textContent = 'Selected works';
+        apply();
+      }, 180);
+    });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+</body>
+</html>
